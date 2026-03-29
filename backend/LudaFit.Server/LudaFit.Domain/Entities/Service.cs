@@ -13,24 +13,21 @@ public sealed class Service : BaseEntity
     
     public Discount? Discount { get; private set; }
     
-    public decimal FinalPrice { get; private set; }
-    
     private Service()
     {
         Name = null!;
         Description = null!;
     }
 
-    private Service(string name, string description, decimal price, decimal finalPrice, Discount? discount = null)
+    private Service(string name, string description, decimal price, Discount? discount = null)
     {
         Name = name;
         Description = description;
         Price = price;
-        FinalPrice = finalPrice;
         Discount = discount;
     }
 
-    public static Result<Service> Create(string name, string description, decimal price, DateOnly currentDate, Discount? discount = null)
+    public static Result<Service> Create(string name, string description, decimal price, Discount? discount = null)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -39,38 +36,35 @@ public sealed class Service : BaseEntity
 
         if (string.IsNullOrWhiteSpace(description))
         {
-            return new ErrorDetails("Опис послуги не може буии пустим");
+            return new ErrorDetails("Опис послуги не може бути пустим");
         }
 
         if (price <= 0)
         {
             return new ErrorDetails("Ціна не може бути 0 або менше");
         }
-        
-        decimal finalPrice = price;
-
-        if (discount is not null)
-        {
-            Result<decimal> calculationResult = discount.CalculatePrice(currentDate, price);
-
-            if (calculationResult.IsFailure)
-            {
-                return new ErrorDetails(
-                    calculationResult.ErrorDetails!.ErrorMessage,
-                    calculationResult.ErrorDetails!.StatusCode
-                );
-            }
-            
-            finalPrice = calculationResult.Value;
-        }
 
         return new Service(
             name,
             description,
             price,
-            finalPrice,
             discount
         );
+    }
+
+    public decimal GetFinalPrice(DateOnly currentDate)
+    {
+        if (Discount is null)
+        {
+            return Price;
+        }
+
+        if (Discount.IsActive(currentDate) is false)
+        {
+            return Price;
+        }
+        
+        return Price * (1 - Discount!.Percent / 100m);
     }
 
     public Result ChangeName(string name)
@@ -88,14 +82,14 @@ public sealed class Service : BaseEntity
     {
         if (string.IsNullOrWhiteSpace(description))
         {
-            return new ErrorDetails("Опис послуги не может бути пустим");
+            return new ErrorDetails("Опис послуги не може бути пустим");
         }
         
         Description = description;
         return Result.Success();
     }
 
-    public Result ChangePrice(DateOnly currentDate, decimal price)
+    public Result ChangePrice(decimal price)
     {
         if (price <= 0)
         {
@@ -103,19 +97,6 @@ public sealed class Service : BaseEntity
         }
         
         Price = price;
-
-        if (Discount is not null)
-        {
-            Result<decimal> calculationResult = Discount.CalculatePrice(currentDate, price);
-
-            if (calculationResult.IsFailure)
-            {
-                return calculationResult;
-            }
-            
-            FinalPrice = calculationResult.Value;
-        }
-        
         return Result.Success();
     }
 
@@ -129,23 +110,11 @@ public sealed class Service : BaseEntity
         }
         
         Discount = createDiscountResult.Value;
-        
-        Result<decimal> calculationResult = Discount!.CalculatePrice(currentDate, Price);
-
-        if (calculationResult.IsFailure)
-        {
-            return calculationResult;
-        }
-            
-        FinalPrice = calculationResult.Value;
         return Result.Success();
     }
 
     public void RemoveDiscount()
-    {
-        Discount = null;
-        FinalPrice = Price;
-    }
+        => Discount = null;
     
-    //todo: дать джемини проверить логику и валидацию + исправить красные модели в схеме обсидиан
+    //todo: исправить красные модели в схеме обсидиан
 }

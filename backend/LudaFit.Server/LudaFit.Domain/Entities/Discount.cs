@@ -112,14 +112,4 @@ public sealed class Discount : BaseEntity
         Status = DiscountStatus.Expired;
         return Result.Success();
     }
-
-    public Result<decimal> CalculatePrice(DateOnly currentDate, decimal price)
-    {
-        if (!IsActive(currentDate))
-        {
-            return new ErrorDetails("розрахувати ціну неможливо, знижка не активна");
-        }
-        
-        return price * (1 - Percent / 100m);
-    }
 }
