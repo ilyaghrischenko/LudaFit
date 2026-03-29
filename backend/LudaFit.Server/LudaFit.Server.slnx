@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="LudaFit.Core\LudaFit.Core.csproj" />
+  <Project Path="LudaFit.Domain/LudaFit.Domain.csproj" />
+  <Project Path="LudaFit.Infrastructure.AzureBlobStorage/LudaFit.Infrastructure.AzureBlobStorage.csproj" />
+  <Project Path="LudaFit.Infrastructure.Gmail/LudaFit.Infrastructure.Gmail.csproj" />
+  <Project Path="LudaFit.Infrastructure.SQLite\LudaFit.Infrastructure.SQLite.csproj" />
+  <Project Path="LudaFit.SharedKernel/LudaFit.SharedKernel.csproj" />
+</Solution>
