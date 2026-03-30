@@ -64,7 +64,9 @@ public readonly record struct Result
     public TResult Map<TResult>(Func<TResult> onSuccess, Func<string, TResult> onFailure)
         => IsSuccess ? onSuccess() : onFailure(ErrorDetails!.ErrorMessage);
     
+#pragma warning disable CA2225
     public static implicit operator Result(ErrorDetails errorDetails)
+#pragma warning restore CA2225
         => Failure(errorDetails);
 }
 
@@ -150,13 +152,19 @@ public readonly record struct Result<TValue>
     public TResult Map<TResult>(Func<TValue, TResult> onSuccess, Func<string, TResult> onFailure)
         => IsSuccess ? onSuccess(Value!) : onFailure(ErrorDetails!.ErrorMessage);
     
+#pragma warning disable CA2225
     public static implicit operator Result<TValue>(TValue value)
+#pragma warning restore CA2225
         => Success(value);
 
+#pragma warning disable CA2225
     public static implicit operator Result<TValue>(ErrorDetails errorDetails)
+#pragma warning restore CA2225
         => Failure(errorDetails);
     
+#pragma warning disable CA2225
     public static implicit operator Result(Result<TValue> result)
+#pragma warning restore CA2225
         => result.IsSuccess
             ? Result.Success()
             : Result.Failure(result);

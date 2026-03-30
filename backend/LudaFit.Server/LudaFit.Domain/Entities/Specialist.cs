@@ -1,28 +1,50 @@
+using System.Net;
 using LudaFit.Domain.Entities.Common;
+using LudaFit.Domain.ValueObjects;
 using LudaFit.SharedKernel.Models;
 
 namespace LudaFit.Domain.Entities;
 
 public sealed class Specialist : BaseEntity
 {
+    public string Name { get; private set; }
+    
     public string PhotoUrl { get; private set; }
     
     public string Description { get; private set; }
+    
+    public TimeRange WorkTime { get; private set; }
 
     private Specialist()
     {
+        Name = null!;
         PhotoUrl = null!;
         Description = null!;
+        WorkTime = null!;
     }
 
-    private Specialist(string photoUrl, string description)
+    private Specialist(string name, string photoUrl, string description, TimeRange workTime)
     {
+        Name = name;
         PhotoUrl = photoUrl;
         Description = description;
+        WorkTime = workTime;
     }
 
-    public static Result<Specialist> Create(string photoUrl, string description)
+    public static Result<Specialist> Create(
+        string name,
+        string photoUrl,
+        string description,
+        int startWorkHour,
+        int startWorkMinute,
+        int endWorkHour,
+        int endWorkMinute)
     {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return new ErrorDetails("Ім'я не може бути пустим");
+        }
+        
         if (string.IsNullOrWhiteSpace(photoUrl))
         {
             return new ErrorDetails("Фотографія не може бути пустою");
@@ -33,10 +55,30 @@ public sealed class Specialist : BaseEntity
             return new ErrorDetails("Опис не може бути пустим");
         }
 
+        Result<TimeRange> createWorkTimeResult = TimeRange.Create(startWorkHour, startWorkMinute, endWorkHour, endWorkMinute);
+
+        if (createWorkTimeResult.IsFailure)
+        {
+            return Result<Specialist>.Failure(createWorkTimeResult);
+        }
+
         return new Specialist(
+            name,
             photoUrl,
-            description
+            description,
+            createWorkTimeResult.Value!
         );
+    }
+
+    public Result ChangeName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return new ErrorDetails("Ім'я не може бути пустим");
+        }
+
+        Name = name;
+        return Result.Success();
     }
 
     public Result ChangePhotoUrl(string newPhotoUrl)
@@ -48,14 +90,14 @@ public sealed class Specialist : BaseEntity
 
         if (PhotoUrl == newPhotoUrl)
         {
-            return new ErrorDetails("Нова фотографія повина відрізнятися");
+            return new ErrorDetails("Нова фотографія повинна відрізнятися");
         }
         
         PhotoUrl = newPhotoUrl;
         return Result.Success();
     }
 
-    public Result ChangeDecription(string description)
+    public Result ChangeDescription(string description)
     {
         if (string.IsNullOrWhiteSpace(description))
         {
@@ -68,6 +110,24 @@ public sealed class Specialist : BaseEntity
         }
         
         Description = description;
+        return Result.Success();
+    }
+
+    public Result ChangeWorkTime(int startWorkHour, int startWorkMinute, int endWorkHour, int endWorkMinute)
+    {
+        Result<TimeRange> createNewWorkTimeResult = TimeRange.Create(startWorkHour, startWorkMinute, endWorkHour, endWorkMinute);
+
+        if (createNewWorkTimeResult.IsFailure)
+        {
+            return createNewWorkTimeResult;
+        }
+
+        if (WorkTime == createNewWorkTimeResult.Value!)
+        {
+            return new ErrorDetails("Новий графік роботи повністю співпадає з поточним");
+        }
+
+        WorkTime = createNewWorkTimeResult.Value!;
         return Result.Success();
     }
 }
