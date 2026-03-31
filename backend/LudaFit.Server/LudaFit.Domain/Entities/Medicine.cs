@@ -5,12 +5,9 @@ namespace LudaFit.Domain.Entities;
 
 public sealed class Medicine : BaseEntity
 {
-    public string Name { get; private set; }
+    public string Name { get; private set; } = null!;
 
-    private Medicine()
-    {
-        Name = null!;
-    }
+    private Medicine() { }
 
     private Medicine(string name)
     {

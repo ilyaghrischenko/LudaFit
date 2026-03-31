@@ -5,19 +5,15 @@ namespace LudaFit.Domain.Entities;
 
 public sealed class Service : BaseEntity
 {
-    public string Name { get; private set; }
-    
-    public string Description { get; private set; }
+    public string Name { get; private set; } = null!;
+
+    public string Description { get; private set; } = null!;
     
     public decimal Price { get; private set; }
     
     public Discount? Discount { get; private set; }
     
-    private Service()
-    {
-        Name = null!;
-        Description = null!;
-    }
+    private Service() { }
 
     private Service(string name, string description, decimal price, Discount? discount = null)
     {

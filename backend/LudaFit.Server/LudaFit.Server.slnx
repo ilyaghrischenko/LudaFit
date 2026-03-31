@@ -5,4 +5,5 @@
   <Project Path="LudaFit.Infrastructure.Gmail/LudaFit.Infrastructure.Gmail.csproj" />
   <Project Path="LudaFit.Infrastructure.SQLite\LudaFit.Infrastructure.SQLite.csproj" />
   <Project Path="LudaFit.SharedKernel/LudaFit.SharedKernel.csproj" />
+  <Project Path="LudaFit.Tests/LudaFit.Tests.csproj" />
 </Solution>

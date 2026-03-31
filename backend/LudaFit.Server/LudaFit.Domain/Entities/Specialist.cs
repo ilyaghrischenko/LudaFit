@@ -7,21 +7,15 @@ namespace LudaFit.Domain.Entities;
 
 public sealed class Specialist : BaseEntity
 {
-    public string Name { get; private set; }
-    
-    public string PhotoUrl { get; private set; }
-    
-    public string Description { get; private set; }
-    
-    public TimeRange WorkTime { get; private set; }
+    public string Name { get; private set; } = null!;
 
-    private Specialist()
-    {
-        Name = null!;
-        PhotoUrl = null!;
-        Description = null!;
-        WorkTime = null!;
-    }
+    public string PhotoUrl { get; private set; } = null!;
+
+    public string Description { get; private set; } = null!;
+
+    public TimeRange WorkTime { get; private set; } = null!;
+
+    private Specialist() { }
 
     private Specialist(string name, string photoUrl, string description, TimeRange workTime)
     {

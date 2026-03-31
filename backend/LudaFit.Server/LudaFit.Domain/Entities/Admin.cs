@@ -6,15 +6,11 @@ namespace LudaFit.Domain.Entities;
 
 public sealed class Admin : BaseEntity
 {
-    public string Login { get; private set; }
-    
-    public string PasswordHash { get; private set; }
+    public string Login { get; private set; } = null!;
 
-    private Admin()
-    {
-        Login = null!;
-        PasswordHash = null!;
-    }
+    public string PasswordHash { get; private set; } = null!;
+
+    private Admin() { }
 
     private Admin(string login, string passwordHash)
     {
