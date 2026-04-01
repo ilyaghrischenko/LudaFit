@@ -24,32 +24,32 @@ public static class PasswordRules
 
     public static Result IsValid(string password)
     {
-        if (MustNotBeNullOrWhiteSpace(password))
+        if (MustNotBeNullOrWhiteSpace(password) is false)
         {
             return new ErrorDetails("Пароль не може бути пустим");
         }
 
-        if (MustBeAtLeast8CharactersLong(password))
+        if (MustBeAtLeast8CharactersLong(password) is false)
         {
             return new ErrorDetails("Пароль повинен мати мінімум 8 символів");
         }
 
-        if (MustContainAtLeastOneUppercaseLetter(password))
+        if (MustContainAtLeastOneUppercaseLetter(password) is false)
         {
             return new ErrorDetails("Пароль повинен мати хоча б одну велику літеру");
         }
 
-        if (MustContainAtLeastOneLowercaseLetter(password))
+        if (MustContainAtLeastOneLowercaseLetter(password) is false)
         {
             return new ErrorDetails("Пароль повинен мати хоча б одну малу літеру");
         }
 
-        if (MustContainAtLeastOneDigit(password))
+        if (MustContainAtLeastOneDigit(password) is false)
         {
             return new ErrorDetails("Пароль повинен мати хоча б одну цифру");
         }
 
-        if (MustContainAtLeastOneSpecialCharacter(password))
+        if (MustContainAtLeastOneSpecialCharacter(password) is false)
         {
             return new ErrorDetails("Пароль повинен мати хоча б один спеціальний символ");
         }
