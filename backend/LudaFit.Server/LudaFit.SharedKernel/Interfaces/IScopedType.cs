@@ -1,3 +1,3 @@
 namespace LudaFit.SharedKernel.Interfaces;
 
-public interface IScopedType { }
+public interface IScopedType { } 
