@@ -111,6 +111,4 @@ public sealed class Service : BaseEntity
 
     public void RemoveDiscount()
         => Discount = null;
-    
-    //todo: исправить красные модели в схеме обсидиан
 }
