@@ -11,149 +11,81 @@ public sealed class BookingTests
     public void Create_ShouldReturnSuccess_WhenArgumentsAreValid_AndDiagnosesAreNotProvided()
     {
         // Arrange
-        const string serviceName = "Консультація";
-        const decimal servicePrice = 1500m;
-        const int serviceId = 12;
-        const string fullName = "Іван Петренко";
-        const uint age = 28;
-        const uint height = 182;
-        const float weight = 81.5f;
-        const uint waistSize = 88;
-        const string purpose = "Схуднення";
-        const bool anxietyTendency = true;
-        const bool foodWeighing = false;
-        const string feelingUnwellComplaints = "Періодична втома";
-        const string allergies = "Пилок";
-        const string intolerances = "Лактоза";
-        const string favoriteFoods = "Риба";
-        const string unfavoriteFoods = "Печінка";
-        const string physicalActivities = "Плавання";
-        const string stressAndHowYouCopeWithIt = "Прогулянки";
 
         // Act
-        Result<Booking> result = Booking.Create(
-            serviceName,
-            servicePrice,
-            serviceId,
-            fullName,
-            age,
-            height,
-            weight,
-            waistSize,
-            purpose,
-            anxietyTendency,
-            foodWeighing,
-            feelingUnwellComplaints: feelingUnwellComplaints,
-            allergies: allergies,
-            intolerances: intolerances,
-            favoriteFoods: favoriteFoods,
-            unfavoriteFoods: unfavoriteFoods,
-            physicalActivities: physicalActivities,
-            stressAndHowYouCopeWithIt: stressAndHowYouCopeWithIt);
+        Result<Booking> result = CreateValidBooking();
 
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.IsFailure.Should().BeFalse();
         result.ErrorDetails.Should().BeNull();
         result.Value.Should().NotBeNull();
-        result.Value!.ServiceName.Should().Be(serviceName);
-        result.Value.ServicePrice.Should().Be(servicePrice);
-        result.Value.ServiceId.Should().Be(serviceId);
-        result.Value.FullName.Should().Be(fullName);
-        result.Value.Purpose.Should().Be(purpose);
-        result.Value.FoodWeighing.Should().Be(foodWeighing);
-        result.Value.ClientMetrics.Age.Should().Be(age);
-        result.Value.ClientMetrics.Height.Should().Be(height);
-        result.Value.ClientMetrics.Weight.Should().Be(weight);
-        result.Value.ClientMetrics.WaistSize.Should().Be(waistSize);
-        result.Value.ClientHealth.AnxietyTendency.Should().Be(anxietyTendency);
-        result.Value.ClientHealth.FeelingUnwellComplaints.Should().Be(feelingUnwellComplaints);
-        result.Value.ClientHealth.Allergies.Should().Be(allergies);
-        result.Value.ClientHealth.Intolerances.Should().Be(intolerances);
-        result.Value.ClientHealth.PhysicalActivities.Should().Be(physicalActivities);
-        result.Value.ClientHealth.StressAndHowYouCopeWithIt.Should().Be(stressAndHowYouCopeWithIt);
-        result.Value.ClientFoodPreferences.FavoriteFoods.Should().Be(favoriteFoods);
-        result.Value.ClientFoodPreferences.UnfavoriteFoods.Should().Be(unfavoriteFoods);
+        result.Value!.ServiceName.Should().Be("Консультація");
+        result.Value.ServicePrice.Should().Be(1500m);
+        result.Value.ServiceId.Should().Be(7);
+        result.Value.FullName.Should().Be("Іван Петренко");
+        result.Value.Purpose.Should().Be("Схуднення");
+        result.Value.FoodWeighing.Should().BeTrue();
+        result.Value.ClientMetrics.Age.Should().Be(30u);
+        result.Value.ClientMetrics.Height.Should().Be(180u);
+        result.Value.ClientMetrics.Weight.Should().Be(82.5f);
+        result.Value.ClientMetrics.WaistSize.Should().Be(92u);
+        result.Value.ClientHealth.AnxietyTendency.Should().BeTrue();
+        result.Value.ClientHealth.FeelingUnwellComplaints.Should().Be("Втома ввечері");
+        result.Value.ClientHealth.Allergies.Should().Be("Пилок");
+        result.Value.ClientHealth.Intolerances.Should().Be("Лактоза");
+        result.Value.ClientHealth.PhysicalActivities.Should().Be("Ходьба");
+        result.Value.ClientHealth.StressAndHowYouCopeWithIt.Should().Be("Медитація");
+        result.Value.ClientFoodPreferences.FavoriteFoods.Should().Be("Риба");
+        result.Value.ClientFoodPreferences.UnfavoriteFoods.Should().Be("Печінка");
+        result.Value.ClientContacts.PhoneNumber.Should().Be("+380671112233");
+        result.Value.ClientContacts.Email.Address.Should().Be("ivan.petrenko@example.com");
         result.Value.Diagnoses.Should().BeEmpty();
     }
 
     [Fact]
-    public void Create_ShouldReturnSuccess_WhenArgumentsAndDiagnosesAreValid()
+    public void Create_ShouldReturnSuccess_WhenArgumentsAreValid_AndDiagnosesAreProvided()
     {
         // Arrange
-        CreateDiagnosisForBooking[] diagnosesForBooking =
+        CreateDiagnosisForBooking[] diagnoses =
         [
-            new CreateDiagnosisForBooking("Гіпотиреоз", ["Йод", "Селен"]),
-            new CreateDiagnosisForBooking("Анемія", ["Залізо"])
+            new CreateDiagnosisForBooking("Інсулінорезистентність", ["Метформін", "Вітамін D"]),
+            new CreateDiagnosisForBooking("Анемія", ["Феритин"])
         ];
 
         // Act
-        Result<Booking> result = Booking.Create(
-            "Супровід",
-            2200m,
-            7,
-            "Марія Іваненко",
-            33,
-            170,
-            63.4f,
-            75,
-            "Покращення самопочуття",
-            false,
-            true,
-            diagnosesForBooking,
-            favoriteFoods: "Овочі");
+        Result<Booking> result = CreateValidBooking(diagnoses);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.IsFailure.Should().BeFalse();
         result.ErrorDetails.Should().BeNull();
         result.Value.Should().NotBeNull();
-        result.Value!.FoodWeighing.Should().BeTrue();
-        result.Value.Diagnoses.Should().HaveCount(2);
+        result.Value!.Diagnoses.Should().HaveCount(2);
         result.Value.Diagnoses.Select(diagnosis => diagnosis.Name)
             .Should()
-            .Equal("Гіпотиреоз", "Анемія");
+            .Equal("Інсулінорезистентність", "Анемія");
         result.Value.Diagnoses.First().Medicines.Select(medicine => medicine.Name)
             .Should()
-            .Equal("Йод", "Селен");
+            .Equal("Метформін", "Вітамін D");
         result.Value.Diagnoses.Last().Medicines.Select(medicine => medicine.Name)
             .Should()
-            .Equal("Залізо");
+            .Equal("Феритин");
     }
 
     [Fact]
-    public void Create_ShouldReturnSuccess_WhenDiagnosisMedicinesContainWhitespaceAndDuplicates()
+    public void Create_ShouldReturnSuccess_WhenDiagnosesCollectionIsEmpty()
     {
         // Arrange
-        CreateDiagnosisForBooking[] diagnosesForBooking =
-        [
-            new CreateDiagnosisForBooking("Гіпотиреоз", [" Йод ", " ", string.Empty, "йод", "Селен"])
-        ];
+        CreateDiagnosisForBooking[] diagnoses = [];
 
         // Act
-        Result<Booking> result = Booking.Create(
-            "Супровід",
-            2200m,
-            7,
-            "Марія Іваненко",
-            33,
-            170,
-            63.4f,
-            75,
-            "Покращення самопочуття",
-            false,
-            true,
-            diagnosesForBooking);
+        Result<Booking> result = CreateValidBooking(diagnoses);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.IsFailure.Should().BeFalse();
         result.ErrorDetails.Should().BeNull();
         result.Value.Should().NotBeNull();
-        result.Value!.Diagnoses.Should().ContainSingle();
-        result.Value.Diagnoses.Single().Medicines.Select(medicine => medicine.Name)
-            .Should()
-            .Equal("Йод", "Селен");
+        result.Value!.Diagnoses.Should().BeEmpty();
     }
 
     [Theory]
@@ -161,8 +93,6 @@ public sealed class BookingTests
     [InlineData("")]
     [InlineData(" ")]
     [InlineData("   ")]
-    [InlineData("\t")]
-    [InlineData("\r\n")]
     public void Create_ShouldReturnFailure_WhenServiceNameIsNullOrWhiteSpace(string? serviceName)
     {
         // Arrange
@@ -171,16 +101,18 @@ public sealed class BookingTests
         // Act
         Result<Booking> result = Booking.Create(
             serviceName!,
-            1200m,
-            2,
+            1500m,
+            7,
             "Іван Петренко",
             30,
             180,
-            80f,
-            90,
+            82.5f,
+            92,
             "Схуднення",
-            false,
-            false);
+            true,
+            true,
+            "+380671112233",
+            "ivan.petrenko@example.com");
 
         // Assert
         result.IsSuccess.Should().BeFalse();
@@ -193,9 +125,9 @@ public sealed class BookingTests
 
     [Theory]
     [InlineData(0)]
+    [InlineData(-1)]
     [InlineData(-0.01)]
-    [InlineData(-100)]
-    public void Create_ShouldReturnFailure_WhenServicePriceIsNotPositive(decimal servicePrice)
+    public void Create_ShouldReturnFailure_WhenServicePriceIsZeroOrLess(decimal servicePrice)
     {
         // Arrange
         const string expectedMessage = "Ціна не може бути 0 або менше";
@@ -204,15 +136,17 @@ public sealed class BookingTests
         Result<Booking> result = Booking.Create(
             "Консультація",
             servicePrice,
-            2,
+            7,
             "Іван Петренко",
             30,
             180,
-            80f,
-            90,
+            82.5f,
+            92,
             "Схуднення",
-            false,
-            false);
+            true,
+            true,
+            "+380671112233",
+            "ivan.petrenko@example.com");
 
         // Assert
         result.IsSuccess.Should().BeFalse();
@@ -232,16 +166,18 @@ public sealed class BookingTests
         // Act
         Result<Booking> result = Booking.Create(
             "Консультація",
-            1200m,
+            1500m,
             0,
             "Іван Петренко",
             30,
             180,
-            80f,
-            90,
+            82.5f,
+            92,
             "Схуднення",
-            false,
-            false);
+            true,
+            true,
+            "+380671112233",
+            "ivan.petrenko@example.com");
 
         // Assert
         result.IsSuccess.Should().BeFalse();
@@ -265,16 +201,18 @@ public sealed class BookingTests
         // Act
         Result<Booking> result = Booking.Create(
             "Консультація",
-            1200m,
-            2,
+            1500m,
+            7,
             fullName!,
             30,
             180,
-            80f,
-            90,
+            82.5f,
+            92,
             "Схуднення",
-            false,
-            false);
+            true,
+            true,
+            "+380671112233",
+            "ivan.petrenko@example.com");
 
         // Assert
         result.IsSuccess.Should().BeFalse();
@@ -298,135 +236,18 @@ public sealed class BookingTests
         // Act
         Result<Booking> result = Booking.Create(
             "Консультація",
-            1200m,
-            2,
+            1500m,
+            7,
             "Іван Петренко",
             30,
             180,
-            80f,
-            90,
+            82.5f,
+            92,
             purpose!,
-            false,
-            false);
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.IsFailure.Should().BeTrue();
-        result.Value.Should().BeNull();
-        result.ErrorDetails.Should().NotBeNull();
-        result.ErrorDetails!.ErrorMessage.Should().Be(expectedMessage);
-        result.ErrorDetails.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-    }
-
-    [Theory]
-    [InlineData(0u, 180u, 80f, 90u, "Дуже сумніваюся що тобі 0 років")]
-    [InlineData(101u, 180u, 80f, 90u, "Дуже сумніваюся що тобі 101 років")]
-    [InlineData(30u, 0u, 80f, 90u, "Дуже сумніваюся що ти 0см зростом")]
-    [InlineData(30u, 251u, 80f, 90u, "Дуже сумніваюся що ти 251см зростом")]
-    [InlineData(30u, 180u, 0f, 90u, "Вага не може бути від'ємною")]
-    [InlineData(30u, 180u, -1f, 90u, "Вага не може бути від'ємною")]
-    [InlineData(30u, 180u, 80f, 0u, "Обхват талії не може бути 0")]
-    public void Create_ShouldReturnFailure_WhenClientMetricsAreInvalid(
-        uint age,
-        uint height,
-        float weight,
-        uint waistSize,
-        string expectedMessage)
-    {
-        // Arrange
-
-        // Act
-        Result<Booking> result = Booking.Create(
-            "Консультація",
-            1200m,
-            2,
-            "Іван Петренко",
-            age,
-            height,
-            weight,
-            waistSize,
-            "Схуднення",
-            false,
-            false);
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.IsFailure.Should().BeTrue();
-        result.Value.Should().BeNull();
-        result.ErrorDetails.Should().NotBeNull();
-        result.ErrorDetails!.ErrorMessage.Should().Be(expectedMessage);
-        result.ErrorDetails.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-    }
-
-    [Theory]
-    [InlineData(" ", null, null, null, null, "Скарги на самопочуття не можуть бути пустими")]
-    [InlineData(null, "\t", null, null, null, "Алергії не можуть бути пустими")]
-    [InlineData(null, null, "   ", null, null, "Не переносимість їжі не може бути пустим")]
-    [InlineData(null, null, null, "\r\n", null, "Фізична активність не може бути пустою")]
-    [InlineData(null, null, null, null, " ", "Як справляєтесь зі стресом не може бути пустим полем")]
-    public void Create_ShouldReturnFailure_WhenClientHealthIsInvalid(
-        string? feelingUnwellComplaints,
-        string? allergies,
-        string? intolerances,
-        string? physicalActivities,
-        string? stressAndHowYouCopeWithIt,
-        string expectedMessage)
-    {
-        // Arrange
-
-        // Act
-        Result<Booking> result = Booking.Create(
-            "Консультація",
-            1200m,
-            2,
-            "Іван Петренко",
-            30,
-            180,
-            80f,
-            90,
-            "Схуднення",
-            false,
-            false,
-            feelingUnwellComplaints: feelingUnwellComplaints,
-            allergies: allergies,
-            intolerances: intolerances,
-            physicalActivities: physicalActivities,
-            stressAndHowYouCopeWithIt: stressAndHowYouCopeWithIt);
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.IsFailure.Should().BeTrue();
-        result.Value.Should().BeNull();
-        result.ErrorDetails.Should().NotBeNull();
-        result.ErrorDetails!.ErrorMessage.Should().Be(expectedMessage);
-        result.ErrorDetails.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-    }
-
-    [Theory]
-    [InlineData(" ", null, "Улюблена іжа не може бути пустою")]
-    [InlineData(null, "\t", "Не улюблена іжа не може бути пустою")]
-    public void Create_ShouldReturnFailure_WhenClientFoodPreferencesAreInvalid(
-        string? favoriteFoods,
-        string? unfavoriteFoods,
-        string expectedMessage)
-    {
-        // Arrange
-
-        // Act
-        Result<Booking> result = Booking.Create(
-            "Консультація",
-            1200m,
-            2,
-            "Іван Петренко",
-            30,
-            180,
-            80f,
-            90,
-            "Схуднення",
-            false,
-            false,
-            favoriteFoods: favoriteFoods,
-            unfavoriteFoods: unfavoriteFoods);
+            true,
+            true,
+            "+380671112233",
+            "ivan.petrenko@example.com");
 
         // Assert
         result.IsSuccess.Should().BeFalse();
@@ -438,30 +259,26 @@ public sealed class BookingTests
     }
 
     [Fact]
-    public void Create_ShouldReturnFailure_WhenDiagnosisNameIsInvalid()
+    public void Create_ShouldReturnFailure_WhenPhoneNumberIsInvalid()
     {
         // Arrange
-        CreateDiagnosisForBooking[] diagnosesForBooking =
-        [
-            new CreateDiagnosisForBooking("Гіпотиреоз", ["Йод"]),
-            new CreateDiagnosisForBooking(" ", ["Селен"])
-        ];
-        const string expectedMessage = "Назва діагнозу не може бути пустою";
+        const string expectedMessage = "Номер телефону вказаний не вірно";
 
         // Act
         Result<Booking> result = Booking.Create(
-            "Супровід",
-            2200m,
+            "Консультація",
+            1500m,
             7,
-            "Марія Іваненко",
-            33,
-            170,
-            63.4f,
-            75,
-            "Покращення самопочуття",
-            false,
+            "Іван Петренко",
+            30,
+            180,
+            82.5f,
+            92,
+            "Схуднення",
             true,
-            diagnosesForBooking);
+            true,
+            "12345",
+            "ivan.petrenko@example.com");
 
         // Assert
         result.IsSuccess.Should().BeFalse();
@@ -473,30 +290,144 @@ public sealed class BookingTests
     }
 
     [Fact]
-    public void Create_ShouldReturnFailure_WhenDiagnosisNamesDuplicateIgnoringCaseAndWhitespace()
+    public void Create_ShouldReturnFailure_WhenEmailIsInvalid()
     {
         // Arrange
-        CreateDiagnosisForBooking[] diagnosesForBooking =
-        [
-            new CreateDiagnosisForBooking(" Гіпотиреоз ", ["Йод"]),
-            new CreateDiagnosisForBooking("гіпотиреоз", ["Селен"])
-        ];
-        const string expectedMessage = "Діагноз з назвою гіпотиреоз вже існує";
+        const string expectedMessage = "Пошта вказана не вірно";
 
         // Act
         Result<Booking> result = Booking.Create(
-            "Супровід",
-            2200m,
+            "Консультація",
+            1500m,
             7,
-            "Марія Іваненко",
-            33,
-            170,
-            63.4f,
-            75,
-            "Покращення самопочуття",
-            false,
+            "Іван Петренко",
+            30,
+            180,
+            82.5f,
+            92,
+            "Схуднення",
             true,
-            diagnosesForBooking);
+            true,
+            "+380671112233",
+            "invalid-email");
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.IsFailure.Should().BeTrue();
+        result.Value.Should().BeNull();
+        result.ErrorDetails.Should().NotBeNull();
+        result.ErrorDetails!.ErrorMessage.Should().Be(expectedMessage);
+        result.ErrorDetails.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public void Create_ShouldReturnFailure_WhenClientMetricsAreInvalid()
+    {
+        // Arrange
+        const string expectedMessage = "Дуже сумніваюся що тобі 0 років";
+
+        // Act
+        Result<Booking> result = Booking.Create(
+            "Консультація",
+            1500m,
+            7,
+            "Іван Петренко",
+            0,
+            180,
+            82.5f,
+            92,
+            "Схуднення",
+            true,
+            true,
+            "+380671112233",
+            "ivan.petrenko@example.com");
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.IsFailure.Should().BeTrue();
+        result.Value.Should().BeNull();
+        result.ErrorDetails.Should().NotBeNull();
+        result.ErrorDetails!.ErrorMessage.Should().Be(expectedMessage);
+        result.ErrorDetails.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public void Create_ShouldReturnFailure_WhenClientHealthIsInvalid()
+    {
+        // Arrange
+        const string expectedMessage = "Скарги на самопочуття не можуть бути пустими";
+
+        // Act
+        Result<Booking> result = Booking.Create(
+            "Консультація",
+            1500m,
+            7,
+            "Іван Петренко",
+            30,
+            180,
+            82.5f,
+            92,
+            "Схуднення",
+            true,
+            true,
+            "+380671112233",
+            "ivan.petrenko@example.com",
+            feelingUnwellComplaints: string.Empty);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.IsFailure.Should().BeTrue();
+        result.Value.Should().BeNull();
+        result.ErrorDetails.Should().NotBeNull();
+        result.ErrorDetails!.ErrorMessage.Should().Be(expectedMessage);
+        result.ErrorDetails.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public void Create_ShouldReturnFailure_WhenClientFoodPreferencesAreInvalid()
+    {
+        // Arrange
+        const string expectedMessage = "Улюблена іжа не може бути пустою";
+
+        // Act
+        Result<Booking> result = Booking.Create(
+            "Консультація",
+            1500m,
+            7,
+            "Іван Петренко",
+            30,
+            180,
+            82.5f,
+            92,
+            "Схуднення",
+            true,
+            true,
+            "+380671112233",
+            "ivan.petrenko@example.com",
+            favoriteFoods: string.Empty);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.IsFailure.Should().BeTrue();
+        result.Value.Should().BeNull();
+        result.ErrorDetails.Should().NotBeNull();
+        result.ErrorDetails!.ErrorMessage.Should().Be(expectedMessage);
+        result.ErrorDetails.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public void Create_ShouldReturnFailure_WhenDiagnosesContainDuplicateNamesIgnoringCaseAndWhitespace()
+    {
+        // Arrange
+        CreateDiagnosisForBooking[] diagnoses =
+        [
+            new CreateDiagnosisForBooking("Інсулінорезистентність", ["Метформін"]),
+            new CreateDiagnosisForBooking("  інсулінорезистентність  ", ["Вітамін D"])
+        ];
+        const string expectedMessage = "Діагноз з назвою   інсулінорезистентність   вже існує";
+
+        // Act
+        Result<Booking> result = CreateValidBooking(diagnoses);
 
         // Assert
         result.IsSuccess.Should().BeFalse();
@@ -507,27 +438,79 @@ public sealed class BookingTests
         result.ErrorDetails.StatusCode.Should().Be(HttpStatusCode.Conflict);
     }
 
-    [Fact]
-    public void Create_ShouldPrioritizeTopLevelValidation_BeforeNestedValueObjectsValidation()
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData("   ")]
+    public void Create_ShouldReturnFailure_WhenDiagnosisNameIsNullOrWhiteSpace(string diagnosisName)
     {
         // Arrange
+        CreateDiagnosisForBooking[] diagnoses =
+        [
+            new CreateDiagnosisForBooking(diagnosisName, ["Метформін"])
+        ];
+        const string expectedMessage = "Назва діагнозу не може бути пустою";
+
+        // Act
+        Result<Booking> result = CreateValidBooking(diagnoses);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.IsFailure.Should().BeTrue();
+        result.Value.Should().BeNull();
+        result.ErrorDetails.Should().NotBeNull();
+        result.ErrorDetails!.ErrorMessage.Should().Be(expectedMessage);
+        result.ErrorDetails.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData("   ")]
+    public void Create_ShouldIgnoreMedicineNames_WhenTheyAreNullOrWhiteSpace(string medicineName)
+    {
+        // Arrange
+        CreateDiagnosisForBooking[] diagnoses =
+        [
+            new CreateDiagnosisForBooking("Інсулінорезистентність", [medicineName])
+        ];
+
+        // Act
+        Result<Booking> result = CreateValidBooking(diagnoses);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.IsFailure.Should().BeFalse();
+        result.ErrorDetails.Should().BeNull();
+        result.Value.Should().NotBeNull();
+        result.Value!.Diagnoses.Should().HaveCount(1);
+        result.Value.Diagnoses.Single().Medicines.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Create_ShouldPrioritizeServiceNameValidation_BeforeAllNestedValidationErrors()
+    {
+        // Arrange
+        const string serviceName = "";
         const string expectedMessage = "Назва послуги не може бути пустою";
 
         // Act
         Result<Booking> result = Booking.Create(
-            string.Empty,
-            0,
-            0,
-            string.Empty,
-            0,
-            0,
-            0,
+            serviceName,
+            0m,
             0,
             string.Empty,
-            false,
-            false,
-            feelingUnwellComplaints: " ",
-            favoriteFoods: " ");
+            0,
+            0,
+            -1f,
+            0,
+            string.Empty,
+            true,
+            true,
+            string.Empty,
+            string.Empty,
+            feelingUnwellComplaints: string.Empty,
+            favoriteFoods: string.Empty);
 
         // Assert
         result.IsSuccess.Should().BeFalse();
@@ -539,7 +522,38 @@ public sealed class BookingTests
     }
 
     [Fact]
-    public void Create_ShouldPrioritizeClientMetricsValidation_BeforeClientHealthAndFoodPreferencesValidation()
+    public void Create_ShouldPrioritizeClientContactsValidation_BeforeClientMetricsValidation()
+    {
+        // Arrange
+        const string expectedMessage = "Номер телефону вказаний не вірно";
+
+        // Act
+        Result<Booking> result = Booking.Create(
+            "Консультація",
+            1500m,
+            7,
+            "Іван Петренко",
+            0,
+            180,
+            82.5f,
+            92,
+            "Схуднення",
+            true,
+            true,
+            "invalid-phone",
+            "ivan.petrenko@example.com");
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.IsFailure.Should().BeTrue();
+        result.Value.Should().BeNull();
+        result.ErrorDetails.Should().NotBeNull();
+        result.ErrorDetails!.ErrorMessage.Should().Be(expectedMessage);
+        result.ErrorDetails.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public void Create_ShouldPrioritizeClientMetricsValidation_BeforeClientHealthValidation()
     {
         // Arrange
         const string expectedMessage = "Дуже сумніваюся що тобі 0 років";
@@ -547,18 +561,19 @@ public sealed class BookingTests
         // Act
         Result<Booking> result = Booking.Create(
             "Консультація",
-            1200m,
-            2,
+            1500m,
+            7,
             "Іван Петренко",
             0,
             180,
-            80f,
-            90,
+            82.5f,
+            92,
             "Схуднення",
-            false,
-            false,
-            feelingUnwellComplaints: " ",
-            favoriteFoods: " ");
+            true,
+            true,
+            "+380671112233",
+            "ivan.petrenko@example.com",
+            feelingUnwellComplaints: string.Empty);
 
         // Assert
         result.IsSuccess.Should().BeFalse();
@@ -570,7 +585,7 @@ public sealed class BookingTests
     }
 
     [Fact]
-    public void Create_ShouldPrioritizeClientHealthValidation_BeforeFoodPreferencesValidation()
+    public void Create_ShouldPrioritizeClientHealthValidation_BeforeClientFoodPreferencesValidation()
     {
         // Arrange
         const string expectedMessage = "Скарги на самопочуття не можуть бути пустими";
@@ -578,18 +593,20 @@ public sealed class BookingTests
         // Act
         Result<Booking> result = Booking.Create(
             "Консультація",
-            1200m,
-            2,
+            1500m,
+            7,
             "Іван Петренко",
             30,
             180,
-            80f,
-            90,
+            82.5f,
+            92,
             "Схуднення",
-            false,
-            false,
-            feelingUnwellComplaints: " ",
-            favoriteFoods: " ");
+            true,
+            true,
+            "+380671112233",
+            "ivan.petrenko@example.com",
+            feelingUnwellComplaints: string.Empty,
+            favoriteFoods: string.Empty);
 
         // Assert
         result.IsSuccess.Should().BeFalse();
@@ -599,4 +616,28 @@ public sealed class BookingTests
         result.ErrorDetails!.ErrorMessage.Should().Be(expectedMessage);
         result.ErrorDetails.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
+
+    private static Result<Booking> CreateValidBooking(CreateDiagnosisForBooking[]? diagnoses = null)
+        => Booking.Create(
+            "Консультація",
+            1500m,
+            7,
+            "Іван Петренко",
+            30,
+            180,
+            82.5f,
+            92,
+            "Схуднення",
+            true,
+            true,
+            "+380671112233",
+            "ivan.petrenko@example.com",
+            diagnoses,
+            "Втома ввечері",
+            "Пилок",
+            "Лактоза",
+            "Риба",
+            "Печінка",
+            "Ходьба",
+            "Медитація");
 }

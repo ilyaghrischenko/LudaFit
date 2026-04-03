@@ -1,3 +1,4 @@
+using System.Net.Mail;
 using LudaFit.Domain.Entities;
 using LudaFit.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
@@ -88,6 +89,18 @@ public sealed class BookingEntityConfiguration : IEntityTypeConfiguration<Bookin
             
             clientFoodPreferences.Property(cfp => cfp.UnfavoriteFoods)
                 .HasColumnName("ClientUnfavoriteFoods");
+        });
+
+        builder.ComplexProperty<ClientContacts>(booking => booking.ClientContacts, clientContacts =>
+        {
+            clientContacts.Property(cc => cc.Email)
+                .IsRequired()
+                .HasConversion<string>(email => email.ToString(), emailString => new MailAddress(emailString))
+                .HasColumnName("ClientEmail");
+            
+            clientContacts.Property(cc => cc.PhoneNumber)
+                .IsRequired()
+                .HasColumnName("ClientPhoneNumber");
         });
     }
 

@@ -6,8 +6,7 @@
 **/.vs/
 **/TestResults/
 # Игнорируем автосгенерированные миграции EF Core (они огромные и ломают контекст)
-**/Migrations/*Snapshot.cs
-**/Migrations/20*.cs
+**/Migrations/
 
 # ==========================================
 # 2. React / Next.js (Frontend)

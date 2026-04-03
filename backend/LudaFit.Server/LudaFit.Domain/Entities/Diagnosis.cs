@@ -65,6 +65,11 @@ public sealed class Diagnosis : BaseEntity
 
     public Result AddMedicine(string name)
     {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return new ErrorDetails("Назва ліків не може бути пустою");
+        }
+        
         string trimmedName = name.Trim();
         bool alreadyExists = _medicines.Any(medicine => medicine.Name.Equals(trimmedName, StringComparison.OrdinalIgnoreCase));
 

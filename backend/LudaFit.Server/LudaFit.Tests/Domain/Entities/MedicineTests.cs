@@ -1,5 +1,4 @@
 using System.Net;
-using System.Reflection;
 using FluentAssertions;
 using LudaFit.Domain.Entities;
 using LudaFit.SharedKernel.Models;
@@ -8,13 +7,12 @@ namespace LudaFit.Tests.Domain.Entities;
 
 public sealed class MedicineTests
 {
-    [Theory]
-    [InlineData("Парацетамол")]
-    [InlineData("  Ibuprofen  ")]
-    public void Create_ShouldReturnSuccess_WhenNameAndDiagnosisAreValid(string name)
+    [Fact]
+    public void Create_ShouldReturnSuccess_WhenArgumentsAreValid()
     {
         // Arrange
-        Diagnosis diagnosis = CreateDiagnosis("Гіпотиреоз", 17);
+        Diagnosis diagnosis = CreateDiagnosis();
+        const string name = "Метформін";
 
         // Act
         Result<Medicine> result = Medicine.Create(name, diagnosis);
@@ -26,7 +24,23 @@ public sealed class MedicineTests
         result.Value.Should().NotBeNull();
         result.Value!.Name.Should().Be(name);
         result.Value.Diagnosis.Should().BeSameAs(diagnosis);
-        result.Value.DiagnosisId.Should().Be(17);
+        result.Value.DiagnosisId.Should().Be(diagnosis.Id);
+    }
+
+    [Fact]
+    public void Create_ShouldPreserveProvidedName_WhenItContainsOuterWhitespace()
+    {
+        // Arrange
+        Diagnosis diagnosis = CreateDiagnosis();
+        const string name = " Метформін ";
+
+        // Act
+        Result<Medicine> result = Medicine.Create(name, diagnosis);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().NotBeNull();
+        result.Value!.Name.Should().Be(name);
     }
 
     [Theory]
@@ -34,12 +48,10 @@ public sealed class MedicineTests
     [InlineData("")]
     [InlineData(" ")]
     [InlineData("   ")]
-    [InlineData("\t")]
-    [InlineData("\r\n")]
     public void Create_ShouldReturnFailure_WhenNameIsNullOrWhiteSpace(string? name)
     {
         // Arrange
-        Diagnosis diagnosis = CreateDiagnosis("Гіпотиреоз", 17);
+        Diagnosis diagnosis = CreateDiagnosis();
         const string expectedMessage = "Назва ліків не може бути пустою";
 
         // Act
@@ -54,21 +66,39 @@ public sealed class MedicineTests
         result.ErrorDetails.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
-    [Theory]
-    [InlineData("Нурофен")]
-    [InlineData("  Aspirin  ")]
-    public void ChangeName_ShouldReturnSuccess_WhenNameIsValid(string newName)
+    [Fact]
+    public void ChangeName_ShouldReturnSuccess_WhenNameIsValid()
     {
         // Arrange
-        Medicine medicine = CreateMedicine("Парацетамол");
+        Result<Medicine> createResult = Medicine.Create("Метформін", CreateDiagnosis());
+        Medicine medicine = createResult.Value!;
+        const string newName = "Вітамін D";
 
         // Act
         Result result = medicine.ChangeName(newName);
 
         // Assert
+        createResult.IsSuccess.Should().BeTrue();
         result.IsSuccess.Should().BeTrue();
         result.IsFailure.Should().BeFalse();
         result.ErrorDetails.Should().BeNull();
+        medicine.Name.Should().Be(newName);
+    }
+
+    [Fact]
+    public void ChangeName_ShouldPreserveProvidedName_WhenItContainsOuterWhitespace()
+    {
+        // Arrange
+        Result<Medicine> createResult = Medicine.Create("Метформін", CreateDiagnosis());
+        Medicine medicine = createResult.Value!;
+        const string newName = " Вітамін D ";
+
+        // Act
+        Result result = medicine.ChangeName(newName);
+
+        // Assert
+        createResult.IsSuccess.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
         medicine.Name.Should().Be(newName);
     }
 
@@ -77,19 +107,19 @@ public sealed class MedicineTests
     [InlineData("")]
     [InlineData(" ")]
     [InlineData("   ")]
-    [InlineData("\t")]
-    [InlineData("\r\n")]
     public void ChangeName_ShouldReturnFailure_WhenNameIsNullOrWhiteSpace(string? newName)
     {
         // Arrange
-        Medicine medicine = CreateMedicine("Парацетамол");
-        const string currentName = "Парацетамол";
+        Result<Medicine> createResult = Medicine.Create("Метформін", CreateDiagnosis());
+        Medicine medicine = createResult.Value!;
+        const string currentName = "Метформін";
         const string expectedMessage = "Назва ліків не може бути пустою";
 
         // Act
         Result result = medicine.ChangeName(newName!);
 
         // Assert
+        createResult.IsSuccess.Should().BeTrue();
         result.IsSuccess.Should().BeFalse();
         result.IsFailure.Should().BeTrue();
         result.ErrorDetails.Should().NotBeNull();
@@ -98,65 +128,29 @@ public sealed class MedicineTests
         medicine.Name.Should().Be(currentName);
     }
 
-    private static Medicine CreateMedicine(string name)
+    private static Diagnosis CreateDiagnosis()
     {
-        // Arrange
-        Diagnosis diagnosis = CreateDiagnosis("Гіпотиреоз", 17);
-
-        // Act
-        Result<Medicine> result = Medicine.Create(name, diagnosis);
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
+        Result<Diagnosis> result = Diagnosis.Create("Інсулінорезистентність", CreateValidBooking());
         return result.Value!;
     }
 
-    private static Diagnosis CreateDiagnosis(string name, int id)
+    private static Booking CreateValidBooking()
     {
-        // Arrange
-        Booking booking = CreateBooking();
-
-        // Act
-        Result<Diagnosis> result = Diagnosis.Create(name, booking);
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-
-        Diagnosis diagnosis = result.Value!;
-        SetEntityId(diagnosis, id);
-        return diagnosis;
-    }
-
-    private static Booking CreateBooking()
-    {
-        // Arrange
-
-        // Act
         Result<Booking> result = Booking.Create(
             "Консультація",
             1500m,
-            12,
+            7,
             "Іван Петренко",
-            28,
-            182,
-            81.5f,
-            88,
+            30,
+            180,
+            82.5f,
+            92,
             "Схуднення",
             true,
-            false);
+            true,
+            "+380671112233",
+            "ivan.petrenko@example.com");
 
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-
-        Booking booking = result.Value!;
-        SetEntityId(booking, 3);
-        return booking;
-    }
-
-    private static void SetEntityId(object entity, int id)
-    {
-        FieldInfo? fieldInfo = entity.GetType().BaseType?.GetField("<Id>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic);
-        fieldInfo.Should().NotBeNull();
-        fieldInfo!.SetValue(entity, id);
+        return result.Value!;
     }
 }

@@ -26,6 +26,8 @@ public sealed class Booking : BaseEntity
     
     public bool FoodWeighing { get; private set; }
 
+    public ClientContacts ClientContacts { get; private set; } = null!;
+
     private Booking() { }
 
     private Booking(
@@ -37,7 +39,8 @@ public sealed class Booking : BaseEntity
         string purpose,
         ClientHealth clientHealth,
         ClientFoodPreferences clientFoodPreferences,
-        bool foodWeighing)
+        bool foodWeighing,
+        ClientContacts clientContacts)
     {
         ServiceName = serviceName;
         ServicePrice = servicePrice;
@@ -48,6 +51,7 @@ public sealed class Booking : BaseEntity
         ClientHealth = clientHealth;
         ClientFoodPreferences = clientFoodPreferences;
         FoodWeighing = foodWeighing;
+        ClientContacts = clientContacts;
     }
 
     public static Result<Booking> Create(
@@ -62,6 +66,8 @@ public sealed class Booking : BaseEntity
         string purpose,
         bool anxietyTendency,
         bool foodWeighing,
+        string phoneNumber,
+        string email,
         CreateDiagnosisForBooking[]? diagnosesForBooking = null,
         string? feelingUnwellComplaints = null,
         string? allergies = null,
@@ -94,6 +100,13 @@ public sealed class Booking : BaseEntity
         if (string.IsNullOrWhiteSpace(purpose))
         {
             return new ErrorDetails("Мета схуднення не може бути пустою");
+        }
+
+        Result<ClientContacts> createClientContacts = ClientContacts.Create(phoneNumber, email);
+
+        if (createClientContacts.IsFailure)
+        {
+            return Result<Booking>.Failure(createClientContacts);
         }
 
         Result<ClientMetrics> createClientMetricsResult = ClientMetrics.Create(age, height, weight, waistSize);
@@ -133,7 +146,8 @@ public sealed class Booking : BaseEntity
             purpose,
             createHealthQuestionnaireResult.Value!,
             createClientFoodPreferencesResult.Value!,
-            foodWeighing
+            foodWeighing,
+            createClientContacts.Value!
         );
 
         if (diagnosesForBooking is null)
