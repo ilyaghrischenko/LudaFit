@@ -52,6 +52,8 @@ public sealed class DiscountEntityConfiguration : IEntityTypeConfiguration<Disco
             .OnDelete(DeleteBehavior.Restrict)
             .IsRequired();
         
+        builder.Ignore(discount => discount.Services);
+        
         builder.Navigation("_services")
             .UsePropertyAccessMode(PropertyAccessMode.Field);
     }

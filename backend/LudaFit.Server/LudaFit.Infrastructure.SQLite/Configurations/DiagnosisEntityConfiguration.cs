@@ -30,4 +30,18 @@ public sealed class DiagnosisEntityConfiguration : IEntityTypeConfiguration<Diag
         builder.Navigation(diagnosis => diagnosis.Booking)
             .UsePropertyAccessMode(PropertyAccessMode.Property);
     }
+
+    private static void ConfigureMedicineRelation(EntityTypeBuilder<Diagnosis> builder)
+    {
+        builder.HasMany<Medicine>("_medicines")
+            .WithOne(medicine => medicine.Diagnosis)
+            .HasForeignKey(medicine => medicine.DiagnosisId)
+            .OnDelete(DeleteBehavior.Cascade)
+            .IsRequired();
+        
+        builder.Ignore(diagnosis => diagnosis.Medicines);
+        
+        builder.Navigation("_medicines")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
+    }
 }

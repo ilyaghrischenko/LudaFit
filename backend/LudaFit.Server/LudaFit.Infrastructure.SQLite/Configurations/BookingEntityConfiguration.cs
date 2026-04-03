@@ -99,6 +99,8 @@ public sealed class BookingEntityConfiguration : IEntityTypeConfiguration<Bookin
             .OnDelete(DeleteBehavior.Cascade)
             .IsRequired();
         
+        builder.Ignore(booking => booking.Diagnoses);
+        
         builder.Navigation("_diagnoses")
             .UsePropertyAccessMode(PropertyAccessMode.Field);
     }

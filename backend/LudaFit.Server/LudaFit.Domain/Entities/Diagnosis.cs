@@ -76,7 +76,7 @@ public sealed class Diagnosis : BaseEntity
             );
         }
         
-        Result<Medicine> createMedicineResult = Medicine.Create(trimmedName);
+        Result<Medicine> createMedicineResult = Medicine.Create(trimmedName, this);
 
         if (createMedicineResult.IsFailure)
         {
@@ -99,7 +99,7 @@ public sealed class Diagnosis : BaseEntity
         
         foreach (string name in uniqueNames)
         {
-            Result<Medicine> createMedicineResult = Medicine.Create(name);
+            Result<Medicine> createMedicineResult = Medicine.Create(name, this);
 
             if (createMedicineResult.IsFailure)
             {
