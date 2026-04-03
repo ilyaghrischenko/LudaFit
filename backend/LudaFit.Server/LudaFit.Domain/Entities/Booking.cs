@@ -1,4 +1,5 @@
-﻿using LudaFit.Domain.Entities.Common;
+﻿using System.Net;
+using LudaFit.Domain.Entities.Common;
 using LudaFit.Domain.ValueObjects;
 using LudaFit.SharedKernel.Models;
 
@@ -16,10 +17,10 @@ public sealed class Booking : BaseEntity
 
     public string Purpose { get; private set; } = null!;
 
-    private readonly List<Diagnosis> _diagnoses = new();
+    private readonly List<Diagnosis> _diagnoses = [];
     public IReadOnlyCollection<Diagnosis> Diagnoses => _diagnoses.AsReadOnly();
 
-    public HealthQuestionnaire HealthQuestionnaire { get; private set; } = null!;
+    public ClientHealth ClientHealth { get; private set; } = null!;
 
     public ClientFoodPreferences ClientFoodPreferences { get; private set; } = null!;
     
@@ -34,7 +35,7 @@ public sealed class Booking : BaseEntity
         string fullName,
         ClientMetrics clientMetrics,
         string purpose,
-        HealthQuestionnaire healthQuestionnaire,
+        ClientHealth clientHealth,
         ClientFoodPreferences clientFoodPreferences,
         bool foodWeighing)
     {
@@ -44,7 +45,7 @@ public sealed class Booking : BaseEntity
         FullName = fullName;
         ClientMetrics = clientMetrics;
         Purpose = purpose;
-        HealthQuestionnaire = healthQuestionnaire;
+        ClientHealth = clientHealth;
         ClientFoodPreferences = clientFoodPreferences;
         FoodWeighing = foodWeighing;
     }
@@ -82,7 +83,7 @@ public sealed class Booking : BaseEntity
 
         if (serviceId == 0)
         {
-            return new ErrorDetails("Айді послуши не може бути 0");
+            return new ErrorDetails("Айді послуги не може бути 0");
         }
 
         if (string.IsNullOrWhiteSpace(fullName))
@@ -102,7 +103,7 @@ public sealed class Booking : BaseEntity
             return Result<Booking>.Failure(createClientMetricsResult);
         }
 
-        Result<HealthQuestionnaire> createHealthQuestionnaireResult = HealthQuestionnaire.Create(
+        Result<ClientHealth> createHealthQuestionnaireResult = ClientHealth.Create(
             anxietyTendency,
             feelingUnwellComplaints,
             allergies,
@@ -156,7 +157,18 @@ public sealed class Booking : BaseEntity
         
         foreach (CreateDiagnosisForBooking diagnosisForBooking in diagnosesForBooking)
         {
-            Result<Diagnosis> createDiagnosisForBooking = Diagnosis.Create(diagnosisForBooking.Name, diagnosisForBooking.MedicineNames);
+            bool alreadyExists = _diagnoses.Any(existing => existing.Name.Trim().Equals(diagnosisForBooking.Name.Trim(), StringComparison.OrdinalIgnoreCase))
+                || diagnoses.Any(existing => existing.Name.Trim().Equals(diagnosisForBooking.Name.Trim(), StringComparison.OrdinalIgnoreCase));
+
+            if (alreadyExists)
+            {
+                return new ErrorDetails(
+                    $"Діагноз з назвою {diagnosisForBooking.Name} вже існує",
+                    HttpStatusCode.Conflict
+                );
+            }
+            
+            Result<Diagnosis> createDiagnosisForBooking = Diagnosis.Create(diagnosisForBooking.Name, this, diagnosisForBooking.MedicineNames);
 
             if (createDiagnosisForBooking.IsFailure)
             {

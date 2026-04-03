@@ -66,12 +66,12 @@ public sealed class BookingTests
         result.Value.ClientMetrics.Height.Should().Be(height);
         result.Value.ClientMetrics.Weight.Should().Be(weight);
         result.Value.ClientMetrics.WaistSize.Should().Be(waistSize);
-        result.Value.HealthQuestionnaire.AnxietyTendency.Should().Be(anxietyTendency);
-        result.Value.HealthQuestionnaire.FeelingUnwellComplaints.Should().Be(feelingUnwellComplaints);
-        result.Value.HealthQuestionnaire.Allergies.Should().Be(allergies);
-        result.Value.HealthQuestionnaire.Intolerances.Should().Be(intolerances);
-        result.Value.HealthQuestionnaire.PhysicalActivities.Should().Be(physicalActivities);
-        result.Value.HealthQuestionnaire.StressAndHowYouCopeWithIt.Should().Be(stressAndHowYouCopeWithIt);
+        result.Value.ClientHealth.AnxietyTendency.Should().Be(anxietyTendency);
+        result.Value.ClientHealth.FeelingUnwellComplaints.Should().Be(feelingUnwellComplaints);
+        result.Value.ClientHealth.Allergies.Should().Be(allergies);
+        result.Value.ClientHealth.Intolerances.Should().Be(intolerances);
+        result.Value.ClientHealth.PhysicalActivities.Should().Be(physicalActivities);
+        result.Value.ClientHealth.StressAndHowYouCopeWithIt.Should().Be(stressAndHowYouCopeWithIt);
         result.Value.ClientFoodPreferences.FavoriteFoods.Should().Be(favoriteFoods);
         result.Value.ClientFoodPreferences.UnfavoriteFoods.Should().Be(unfavoriteFoods);
         result.Value.Diagnoses.Should().BeEmpty();
@@ -119,6 +119,41 @@ public sealed class BookingTests
         result.Value.Diagnoses.Last().Medicines.Select(medicine => medicine.Name)
             .Should()
             .Equal("Залізо");
+    }
+
+    [Fact]
+    public void Create_ShouldReturnSuccess_WhenDiagnosisMedicinesContainWhitespaceAndDuplicates()
+    {
+        // Arrange
+        CreateDiagnosisForBooking[] diagnosesForBooking =
+        [
+            new CreateDiagnosisForBooking("Гіпотиреоз", [" Йод ", " ", string.Empty, "йод", "Селен"])
+        ];
+
+        // Act
+        Result<Booking> result = Booking.Create(
+            "Супровід",
+            2200m,
+            7,
+            "Марія Іваненко",
+            33,
+            170,
+            63.4f,
+            75,
+            "Покращення самопочуття",
+            false,
+            true,
+            diagnosesForBooking);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.IsFailure.Should().BeFalse();
+        result.ErrorDetails.Should().BeNull();
+        result.Value.Should().NotBeNull();
+        result.Value!.Diagnoses.Should().ContainSingle();
+        result.Value.Diagnoses.Single().Medicines.Select(medicine => medicine.Name)
+            .Should()
+            .Equal("Йод", "Селен");
     }
 
     [Theory]
@@ -192,7 +227,7 @@ public sealed class BookingTests
     public void Create_ShouldReturnFailure_WhenServiceIdIsZero()
     {
         // Arrange
-        const string expectedMessage = "Айді послуши не може бути 0";
+        const string expectedMessage = "Айді послуги не може бути 0";
 
         // Act
         Result<Booking> result = Booking.Create(
@@ -284,13 +319,13 @@ public sealed class BookingTests
     }
 
     [Theory]
-    [InlineData(0, 180, 80, 90, "Дуже сумніваюся що тобі 0 років")]
-    [InlineData(101, 180, 80, 90, "Дуже сумніваюся що тобі 101 років")]
-    [InlineData(30, 0, 80, 90, "Дуже сумніваюся що ти 0см зростом")]
-    [InlineData(30, 251, 80, 90, "Дуже сумніваюся що ти 251см зростом")]
-    [InlineData(30, 180, 0, 90, "Вага не може бути від'ємною")]
-    [InlineData(30, 180, -1, 90, "Вага не може бути від'ємною")]
-    [InlineData(30, 180, 80, 0, "Обхват талії не може бути 0")]
+    [InlineData(0u, 180u, 80f, 90u, "Дуже сумніваюся що тобі 0 років")]
+    [InlineData(101u, 180u, 80f, 90u, "Дуже сумніваюся що тобі 101 років")]
+    [InlineData(30u, 0u, 80f, 90u, "Дуже сумніваюся що ти 0см зростом")]
+    [InlineData(30u, 251u, 80f, 90u, "Дуже сумніваюся що ти 251см зростом")]
+    [InlineData(30u, 180u, 0f, 90u, "Вага не може бути від'ємною")]
+    [InlineData(30u, 180u, -1f, 90u, "Вага не може бути від'ємною")]
+    [InlineData(30u, 180u, 80f, 0u, "Обхват талії не може бути 0")]
     public void Create_ShouldReturnFailure_WhenClientMetricsAreInvalid(
         uint age,
         uint height,
@@ -325,11 +360,11 @@ public sealed class BookingTests
 
     [Theory]
     [InlineData(" ", null, null, null, null, "Скарги на самопочуття не можуть бути пустими")]
-    [InlineData(null, " ", null, null, null, "Алергії не можуть бути пустими")]
-    [InlineData(null, null, " ", null, null, "Не переносимість їжі не може бути пустим")]
-    [InlineData(null, null, null, " ", null, "Фізична активність не може бути пустою")]
+    [InlineData(null, "\t", null, null, null, "Алергії не можуть бути пустими")]
+    [InlineData(null, null, "   ", null, null, "Не переносимість їжі не може бути пустим")]
+    [InlineData(null, null, null, "\r\n", null, "Фізична активність не може бути пустою")]
     [InlineData(null, null, null, null, " ", "Як справляєтесь зі стресом не може бути пустим полем")]
-    public void Create_ShouldReturnFailure_WhenHealthQuestionnaireIsInvalid(
+    public void Create_ShouldReturnFailure_WhenClientHealthIsInvalid(
         string? feelingUnwellComplaints,
         string? allergies,
         string? intolerances,
@@ -369,7 +404,7 @@ public sealed class BookingTests
 
     [Theory]
     [InlineData(" ", null, "Улюблена іжа не може бути пустою")]
-    [InlineData(null, " ", "Не улюблена іжа не може бути пустою")]
+    [InlineData(null, "\t", "Не улюблена іжа не може бути пустою")]
     public void Create_ShouldReturnFailure_WhenClientFoodPreferencesAreInvalid(
         string? favoriteFoods,
         string? unfavoriteFoods,
@@ -403,7 +438,7 @@ public sealed class BookingTests
     }
 
     [Fact]
-    public void Create_ShouldReturnFailure_WhenDiagnosisNameIsInvalid_AndShouldNotCreateBooking()
+    public void Create_ShouldReturnFailure_WhenDiagnosisNameIsInvalid()
     {
         // Arrange
         CreateDiagnosisForBooking[] diagnosesForBooking =
@@ -438,13 +473,15 @@ public sealed class BookingTests
     }
 
     [Fact]
-    public void Create_ShouldIgnoreEmptyDiagnosisMedicineNames_WhenDiagnosesAreCreated()
+    public void Create_ShouldReturnFailure_WhenDiagnosisNamesDuplicateIgnoringCaseAndWhitespace()
     {
         // Arrange
         CreateDiagnosisForBooking[] diagnosesForBooking =
         [
-            new CreateDiagnosisForBooking("Гіпотиреоз", ["Йод", " ", string.Empty, "Селен"])
+            new CreateDiagnosisForBooking(" Гіпотиреоз ", ["Йод"]),
+            new CreateDiagnosisForBooking("гіпотиреоз", ["Селен"])
         ];
+        const string expectedMessage = "Діагноз з назвою гіпотиреоз вже існує";
 
         // Act
         Result<Booking> result = Booking.Create(
@@ -462,14 +499,12 @@ public sealed class BookingTests
             diagnosesForBooking);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.IsFailure.Should().BeFalse();
-        result.ErrorDetails.Should().BeNull();
-        result.Value.Should().NotBeNull();
-        result.Value!.Diagnoses.Should().ContainSingle();
-        result.Value.Diagnoses.Single().Medicines.Select(medicine => medicine.Name)
-            .Should()
-            .Equal("Йод", "Селен");
+        result.IsSuccess.Should().BeFalse();
+        result.IsFailure.Should().BeTrue();
+        result.Value.Should().BeNull();
+        result.ErrorDetails.Should().NotBeNull();
+        result.ErrorDetails!.ErrorMessage.Should().Be(expectedMessage);
+        result.ErrorDetails.StatusCode.Should().Be(HttpStatusCode.Conflict);
     }
 
     [Fact]
@@ -504,7 +539,7 @@ public sealed class BookingTests
     }
 
     [Fact]
-    public void Create_ShouldPrioritizeClientMetricsValidation_BeforeHealthQuestionnaireAndFoodPreferencesValidation()
+    public void Create_ShouldPrioritizeClientMetricsValidation_BeforeClientHealthAndFoodPreferencesValidation()
     {
         // Arrange
         const string expectedMessage = "Дуже сумніваюся що тобі 0 років";
@@ -535,7 +570,7 @@ public sealed class BookingTests
     }
 
     [Fact]
-    public void Create_ShouldPrioritizeHealthQuestionnaireValidation_BeforeFoodPreferencesValidation()
+    public void Create_ShouldPrioritizeClientHealthValidation_BeforeFoodPreferencesValidation()
     {
         // Arrange
         const string expectedMessage = "Скарги на самопочуття не можуть бути пустими";

@@ -12,6 +12,7 @@ public sealed class Service : BaseEntity
     public decimal Price { get; private set; }
     
     public Discount? Discount { get; private set; }
+    public int? DiscountId { get; private set; }
     
     private Service() { }
 
@@ -21,6 +22,7 @@ public sealed class Service : BaseEntity
         Description = description;
         Price = price;
         Discount = discount;
+        DiscountId = discount?.Id;
     }
 
     public static Result<Service> Create(string name, string description, decimal price, Discount? discount = null)

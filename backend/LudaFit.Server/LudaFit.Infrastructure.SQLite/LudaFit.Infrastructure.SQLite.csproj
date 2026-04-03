@@ -4,7 +4,19 @@
         <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <RootNamespace>LudaFit.Infrastructure.PostgreSQL</RootNamespace>
+        <RootNamespace>LudaFit.Infrastructure.SQLite</RootNamespace>
     </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.14" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.14">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\LudaFit.Domain\LudaFit.Domain.csproj" />
+    </ItemGroup>
 
 </Project>

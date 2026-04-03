@@ -5,7 +5,7 @@ using LudaFit.SharedKernel.Models;
 
 namespace LudaFit.Tests.Domain.ValueObjects;
 
-public sealed class HealthQuestionnaireTests
+public sealed class ClientHealthTests
 {
     [Theory]
     [InlineData(false, null, null, null, null, null)]
@@ -23,7 +23,7 @@ public sealed class HealthQuestionnaireTests
         // Arrange
 
         // Act
-        Result<HealthQuestionnaire> result = HealthQuestionnaire.Create(
+        Result<ClientHealth> result = ClientHealth.Create(
             anxietyTendency,
             feelingUnwellComplaints,
             allergies,
@@ -56,7 +56,7 @@ public sealed class HealthQuestionnaireTests
         const string expectedMessage = "Скарги на самопочуття не можуть бути пустими";
 
         // Act
-        Result<HealthQuestionnaire> result = HealthQuestionnaire.Create(
+        Result<ClientHealth> result = ClientHealth.Create(
             anxietyTendency: false,
             feelingUnwellComplaints: feelingUnwellComplaints);
 
@@ -81,7 +81,7 @@ public sealed class HealthQuestionnaireTests
         const string expectedMessage = "Алергії не можуть бути пустими";
 
         // Act
-        Result<HealthQuestionnaire> result = HealthQuestionnaire.Create(
+        Result<ClientHealth> result = ClientHealth.Create(
             anxietyTendency: false,
             allergies: allergies);
 
@@ -106,7 +106,7 @@ public sealed class HealthQuestionnaireTests
         const string expectedMessage = "Не переносимість їжі не може бути пустим";
 
         // Act
-        Result<HealthQuestionnaire> result = HealthQuestionnaire.Create(
+        Result<ClientHealth> result = ClientHealth.Create(
             anxietyTendency: false,
             intolerances: intolerances);
 
@@ -131,7 +131,7 @@ public sealed class HealthQuestionnaireTests
         const string expectedMessage = "Фізична активність не може бути пустою";
 
         // Act
-        Result<HealthQuestionnaire> result = HealthQuestionnaire.Create(
+        Result<ClientHealth> result = ClientHealth.Create(
             anxietyTendency: false,
             physicalActivities: physicalActivities);
 
@@ -156,7 +156,7 @@ public sealed class HealthQuestionnaireTests
         const string expectedMessage = "Як справляєтесь зі стресом не може бути пустим полем";
 
         // Act
-        Result<HealthQuestionnaire> result = HealthQuestionnaire.Create(
+        Result<ClientHealth> result = ClientHealth.Create(
             anxietyTendency: false,
             stressAndHowYouCopeWithIt: stressAndHowYouCopeWithIt);
 
@@ -176,7 +176,7 @@ public sealed class HealthQuestionnaireTests
         const string expectedMessage = "Скарги на самопочуття не можуть бути пустими";
 
         // Act
-        Result<HealthQuestionnaire> result = HealthQuestionnaire.Create(
+        Result<ClientHealth> result = ClientHealth.Create(
             anxietyTendency: true,
             feelingUnwellComplaints: " ",
             allergies: "\t",
@@ -200,7 +200,7 @@ public sealed class HealthQuestionnaireTests
         const bool anxietyTendency = true;
 
         // Act
-        Result<HealthQuestionnaire> result = HealthQuestionnaire.Create(anxietyTendency);
+        Result<ClientHealth> result = ClientHealth.Create(anxietyTendency);
 
         // Assert
         result.IsSuccess.Should().BeTrue();

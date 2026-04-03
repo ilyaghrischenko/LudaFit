@@ -2,7 +2,7 @@ using LudaFit.SharedKernel.Models;
 
 namespace LudaFit.Domain.ValueObjects;
 
-public sealed record HealthQuestionnaire
+public sealed record ClientHealth
 {
     public string? FeelingUnwellComplaints { get; init; }
     
@@ -16,9 +16,9 @@ public sealed record HealthQuestionnaire
     
     public bool AnxietyTendency { get; init; }
 
-    private HealthQuestionnaire() { }
+    private ClientHealth() { }
 
-    private HealthQuestionnaire(
+    private ClientHealth(
         string? feelingUnwellComplaints,
         string? allergies,
         string? intolerances,
@@ -34,7 +34,7 @@ public sealed record HealthQuestionnaire
         AnxietyTendency = anxietyTendency;
     }
 
-    public static Result<HealthQuestionnaire> Create(
+    public static Result<ClientHealth> Create(
         bool anxietyTendency,
         string? feelingUnwellComplaints = null,
         string? allergies = null,
@@ -67,7 +67,7 @@ public sealed record HealthQuestionnaire
             return new ErrorDetails("Як справляєтесь зі стресом не може бути пустим полем");
         }
 
-        return new HealthQuestionnaire(
+        return new ClientHealth(
             feelingUnwellComplaints,
             allergies,
             intolerances,

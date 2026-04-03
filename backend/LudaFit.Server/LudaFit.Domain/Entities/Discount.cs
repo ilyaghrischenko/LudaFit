@@ -1,25 +1,27 @@
+using System.Net;
 using LudaFit.Domain.Entities.Common;
 using LudaFit.Domain.Enums;
+using LudaFit.Domain.ValueObjects;
 using LudaFit.SharedKernel.Models;
 
 namespace LudaFit.Domain.Entities;
 
 public sealed class Discount : BaseEntity
 {
-    public DateOnly StartDate { get; init; }
-    
-    public DateOnly EndDate { get; private set; }
+    public DateRange DateRange { get; private set; } = null!;
     
     public uint Percent { get; private set; }
+
+    private readonly List<Service> _services = [];
+    public IReadOnlyCollection<Service> Services => _services.AsReadOnly();
     
     public DiscountStatus Status { get; private set; } = DiscountStatus.Active;
 
     private Discount() { }
 
-    private Discount(DateOnly startDate, DateOnly endDate, uint percent)
+    private Discount(DateRange dateRange, uint percent)
     {
-        StartDate = startDate;
-        EndDate = endDate;
+        DateRange = dateRange;
         Percent = percent;
     }
     
@@ -28,19 +30,11 @@ public sealed class Discount : BaseEntity
 
     public static Result<Discount> Create(DateOnly currentDate, DateOnly startDate, DateOnly endDate, uint percent)
     {
-        if (startDate < currentDate)
-        {
-            return new ErrorDetails("Дата початку знижки не може бути раніше ніж сьогодні");
-        }
+        Result<DateRange> createDateRangeResult = DateRange.Create(currentDate, startDate, endDate);
 
-        if (endDate < currentDate)
+        if (createDateRangeResult.IsFailure)
         {
-            return new ErrorDetails("Дата кінця знижки не може бути раніше ніж сьогодні");
-        }
-
-        if (startDate > endDate)
-        {
-            return new ErrorDetails("Дата початку знижки не може бути пізніше ніж дата її кінця");
+            return Result<Discount>.Failure(createDateRangeResult);
         }
 
         if (percent is > 100 or 0)
@@ -49,16 +43,15 @@ public sealed class Discount : BaseEntity
         }
 
         return new Discount(
-            startDate,
-            endDate,
+            createDateRangeResult.Value!,
             percent
         );
     }
     
     public bool IsActive(DateOnly currentDate)
         => Status == DiscountStatus.Active
-           && currentDate >= StartDate
-           && currentDate <= EndDate;
+           && currentDate >= DateRange.Start
+           && currentDate <= DateRange.End;
 
     public Result ChangeEndDate(DateOnly currentDate, DateOnly endDate)
     {
@@ -67,17 +60,14 @@ public sealed class Discount : BaseEntity
             return new ErrorDetails("Неможливо змінити дату кінця знижки, вона вже скінчилась");
         }
         
-        if (endDate < currentDate)
+        Result<DateRange> createDateRangeResult = DateRange.Create(currentDate, DateRange.Start, endDate);
+
+        if (createDateRangeResult.IsFailure)
         {
-            return new ErrorDetails("Дата кінця знижки не може бути раніше ніж сьогодні");
+            return createDateRangeResult;
         }
-        
-        if (StartDate > endDate)
-        {
-            return new ErrorDetails("Дата початку знижки не може бути пізніше ніж дата її кінця");
-        }
-        
-        EndDate = endDate;
+
+        DateRange = createDateRangeResult.Value!;
         return Result.Success();
     }
 
@@ -104,12 +94,43 @@ public sealed class Discount : BaseEntity
             return Result.Success();
         }
         
-        if (EndDate >= currentDate)
+        if (DateRange.End >= currentDate)
         {
             return new ErrorDetails("Знижка ще активна, її не можливо позначити як закінчену");
         }
         
         Status = DiscountStatus.Expired;
+        return Result.Success();
+    }
+
+    public Result AddService(Service service)
+    {
+        bool alreadyExists = _services.Any(existing => existing.Name.Trim().Equals(service.Name.Trim(), StringComparison.OrdinalIgnoreCase));
+
+        if (alreadyExists)
+        {
+            return new ErrorDetails(
+                $"Сервіс з назвою {service.Name} вже існує",
+                HttpStatusCode.Conflict
+            );
+        }
+        
+        _services.Add(service);
+        return Result.Success();
+    }
+
+    public Result AddServices(Service[] services)
+    {
+        foreach (Service service in services)
+        {
+            Result addServiceResult = AddService(service);
+
+            if (addServiceResult.IsFailure)
+            {
+                return addServiceResult;
+            }
+        }
+        
         return Result.Success();
     }
 }

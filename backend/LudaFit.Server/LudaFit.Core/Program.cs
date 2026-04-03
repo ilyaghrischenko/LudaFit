@@ -1,14 +1,13 @@
-var builder = WebApplication.CreateBuilder(args);
+using LudaFit.Core.Extensions;
 
-builder.Services.AddOpenApi();
+EnvExtensions.LoadOrThrow();
 
-var app = builder.Build();
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
+builder.AddConfiguration();
 
-app.UseHttpsRedirection();
+WebApplication app = builder.Build();
+
+app.UseConfiguration();
 
 app.Run();

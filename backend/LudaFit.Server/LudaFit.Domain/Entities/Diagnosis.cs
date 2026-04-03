@@ -8,34 +8,39 @@ public sealed class Diagnosis : BaseEntity
 {
     public string Name { get; private set; } = null!;
 
-    private readonly List<Medicine> _medicines = new();
+    public Booking Booking { get; init; } = null!;
+    public int BookingId { get; init; }
+
+    private readonly List<Medicine> _medicines = [];
     public IReadOnlyCollection<Medicine> Medicines => _medicines.AsReadOnly();
 
     private Diagnosis() { }
 
-    private Diagnosis(string name)
+    private Diagnosis(string name, Booking booking)
     {
         Name = name;
+        Booking = booking;
+        BookingId = booking.Id;
     }
 
-    public static Result<Diagnosis> Create(string name)
+    public static Result<Diagnosis> Create(string name, Booking booking)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
             return new ErrorDetails("Назва діагнозу не може бути пустою");
         }
         
-        return new Diagnosis(name);
+        return new Diagnosis(name, booking);
     }
     
-    public static Result<Diagnosis> Create(string name, IReadOnlyCollection<string> medicinesNames)
+    public static Result<Diagnosis> Create(string name, Booking booking, IReadOnlyCollection<string> medicinesNames)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
             return new ErrorDetails("Назва діагнозу не може бути пустою");
         }
 
-        Diagnosis diagnosis = new(name);
+        Diagnosis diagnosis = new(name, booking);
         
         Result addMedicinesResult = diagnosis.AddMedicines(medicinesNames);
 
@@ -101,7 +106,8 @@ public sealed class Diagnosis : BaseEntity
                 return createMedicineResult;
             }
             
-            bool alreadyExists = _medicines.Any(medicine => medicine.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+            bool alreadyExists = _medicines.Any(medicine => medicine.Name.Trim().Equals(name, StringComparison.OrdinalIgnoreCase))
+                || newMedicines.Any(medicine => medicine.Name.Trim().Equals(name, StringComparison.OrdinalIgnoreCase));
             
             if (alreadyExists)
             {

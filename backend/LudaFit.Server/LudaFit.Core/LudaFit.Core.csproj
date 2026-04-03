@@ -7,7 +7,25 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="DotNetEnv" Version="3.1.1" />
+        <PackageReference Include="FluentValidation" Version="12.1.1" />
+        <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.14" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.4"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.14">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.17.0" />
+        <PackageReference Include="Scrutor" Version="7.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\LudaFit.Domain\LudaFit.Domain.csproj" />
+      <ProjectReference Include="..\LudaFit.Infrastructure.AzureBlobStorage\LudaFit.Infrastructure.AzureBlobStorage.csproj" />
+      <ProjectReference Include="..\LudaFit.Infrastructure.Gmail\LudaFit.Infrastructure.Gmail.csproj" />
+      <ProjectReference Include="..\LudaFit.Infrastructure.SQLite\LudaFit.Infrastructure.SQLite.csproj" />
+      <ProjectReference Include="..\LudaFit.SharedKernel\LudaFit.SharedKernel.csproj" />
     </ItemGroup>
 
 </Project>
