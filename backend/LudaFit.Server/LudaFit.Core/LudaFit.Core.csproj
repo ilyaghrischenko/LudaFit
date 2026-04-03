@@ -28,4 +28,8 @@
       <ProjectReference Include="..\LudaFit.SharedKernel\LudaFit.SharedKernel.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Features\Services\" />
+    </ItemGroup>
+
 </Project>
