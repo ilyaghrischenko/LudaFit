@@ -36,15 +36,17 @@ namespace LudaFit.Infrastructure.SQLite.Migrations
                     ServiceId = table.Column<int>(type: "INTEGER", nullable: false),
                     FullName = table.Column<string>(type: "TEXT", nullable: false),
                     Purpose = table.Column<string>(type: "TEXT", nullable: false),
-                    FoodWeighing = table.Column<bool>(type: "INTEGER", nullable: false),
+                    PhysicalActivities = table.Column<string>(type: "TEXT", nullable: true),
+                    ClientFeelingUnwellComplaints = table.Column<string>(type: "TEXT", nullable: true),
+                    ClientAllergies = table.Column<string>(type: "TEXT", nullable: true),
+                    ClientIntolerances = table.Column<string>(type: "TEXT", nullable: true),
+                    ClientStressAndHowYouCopeWithIt = table.Column<string>(type: "TEXT", nullable: true),
+                    ClientAnxietyTendency = table.Column<bool>(type: "INTEGER", nullable: true),
                     ClientFavoriteFoods = table.Column<string>(type: "TEXT", nullable: true),
                     ClientUnfavoriteFoods = table.Column<string>(type: "TEXT", nullable: true),
-                    ClientAllergies = table.Column<string>(type: "TEXT", nullable: true),
-                    ClientAnxietyTendency = table.Column<bool>(type: "INTEGER", nullable: false),
-                    ClientFeelingUnwellComplaints = table.Column<string>(type: "TEXT", nullable: true),
-                    ClientIntolerances = table.Column<string>(type: "TEXT", nullable: true),
-                    ClientPhysicalActivities = table.Column<string>(type: "TEXT", nullable: true),
-                    ClientStressAndHowYouCopeWithIt = table.Column<string>(type: "TEXT", nullable: true),
+                    FoodWeighing = table.Column<bool>(type: "INTEGER", nullable: true),
+                    ClientEmail = table.Column<string>(type: "TEXT", nullable: false),
+                    ClientPhoneNumber = table.Column<string>(type: "TEXT", nullable: false),
                     ClientAge = table.Column<uint>(type: "INTEGER", nullable: false),
                     ClientHeight = table.Column<uint>(type: "INTEGER", nullable: false),
                     ClientWaistSize = table.Column<uint>(type: "INTEGER", nullable: false),
@@ -62,7 +64,6 @@ namespace LudaFit.Infrastructure.SQLite.Migrations
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     Percent = table.Column<uint>(type: "INTEGER", nullable: false),
-                    Status = table.Column<string>(type: "TEXT", nullable: false),
                     EndDate = table.Column<DateOnly>(type: "TEXT", nullable: false),
                     StartDate = table.Column<DateOnly>(type: "TEXT", nullable: false)
                 },
@@ -151,9 +152,21 @@ namespace LudaFit.Infrastructure.SQLite.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Admins_Login",
+                table: "Admins",
+                column: "Login",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Diagnoses_BookingId",
                 table: "Diagnoses",
                 column: "BookingId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Diagnoses_Name",
+                table: "Diagnoses",
+                column: "Name",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Medicines_DiagnosisId",
@@ -161,9 +174,27 @@ namespace LudaFit.Infrastructure.SQLite.Migrations
                 column: "DiagnosisId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Medicines_Name",
+                table: "Medicines",
+                column: "Name",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Services_DiscountId",
                 table: "Services",
                 column: "DiscountId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Services_Name",
+                table: "Services",
+                column: "Name",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Specialists_Name",
+                table: "Specialists",
+                column: "Name",
+                unique: true);
         }
 
         /// <inheritdoc />

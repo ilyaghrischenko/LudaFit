@@ -1,5 +1,6 @@
 using System.Reflection;
 using LudaFit.Core.Features.Common.Endpoints;
+using Scalar.AspNetCore;
 
 namespace LudaFit.Core.Extensions;
 
@@ -13,9 +14,14 @@ internal static class AppExtensions
         {
             app.MapOpenApi();
 
+            app.MapScalarApiReference(options =>
+            {
+                options.Theme = ScalarTheme.Mars;
+            });
+
             app.MapGet("/", context =>
             {
-                context.Response.Redirect("/swagger/index.html");
+                context.Response.Redirect("/scalar/v1");
                 return Task.CompletedTask;
             });
         }

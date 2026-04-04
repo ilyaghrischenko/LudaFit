@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LudaFit.Infrastructure.SQLite.Migrations
 {
     [DbContext(typeof(LudaFitDbContext))]
-    [Migration("20260404192027_RemovedStatusFromDiscount")]
-    partial class RemovedStatusFromDiscount
+    [Migration("20260404214316_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
