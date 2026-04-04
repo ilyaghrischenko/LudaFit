@@ -14,8 +14,6 @@ public sealed class Discount : BaseEntity
 
     private readonly List<Service> _services = [];
     public IReadOnlyCollection<Service> Services => _services.AsReadOnly();
-    
-    public DiscountStatus Status { get; private set; } = DiscountStatus.Active;
 
     private Discount() { }
 
@@ -25,9 +23,6 @@ public sealed class Discount : BaseEntity
         Percent = percent;
     }
     
-    //todo: написать фоновый процесс который будет отлавливать все не активные скидки и удалять их
-    // может тогда вообще убрать статус?
-
     public static Result<Discount> Create(DateRange dateRange, uint percent)
     {
         if (percent is > 100 or 0)
@@ -42,13 +37,12 @@ public sealed class Discount : BaseEntity
     }
     
     public bool IsActive(DateOnly currentDate)
-        => Status == DiscountStatus.Active
-           && currentDate >= DateRange.Start
+        => currentDate >= DateRange.Start
            && currentDate <= DateRange.End;
 
     public Result ChangeEndDate(DateOnly currentDate, DateOnly endDate)
     {
-        if (Status == DiscountStatus.Expired)
+        if (currentDate > DateRange.End)
         {
             return new ErrorDetails("Неможливо змінити дату кінця знижки, вона вже скінчилась");
         }
@@ -64,9 +58,9 @@ public sealed class Discount : BaseEntity
         return Result.Success();
     }
 
-    public Result ChangePercent(uint percent)
+    public Result ChangePercent(DateOnly currentDate, uint percent)
     {
-        if (Status == DiscountStatus.Expired)
+        if (currentDate > DateRange.End)
         {
             return new ErrorDetails("Неможливо змінити відсоток знижки, вона вже скінчилась");
         }
@@ -77,22 +71,6 @@ public sealed class Discount : BaseEntity
         }
         
         Percent = percent;
-        return Result.Success();
-    }
-
-    public Result Expire(DateOnly currentDate)
-    {
-        if (Status == DiscountStatus.Expired)
-        {
-            return Result.Success();
-        }
-        
-        if (DateRange.End >= currentDate)
-        {
-            return new ErrorDetails("Знижка ще активна, її не можливо позначити як закінчену");
-        }
-        
-        Status = DiscountStatus.Expired;
         return Result.Success();
     }
 

@@ -24,10 +24,6 @@ public sealed class DiscountEntityConfiguration : IEntityTypeConfiguration<Disco
     {
         builder.Property(discount => discount.Percent)
             .IsRequired();
-        
-        builder.Property(discount => discount.Status)
-            .IsRequired()
-            .HasConversion<string>();
     }
 
     private static void ConfigureValueObjects(EntityTypeBuilder<Discount> builder)
