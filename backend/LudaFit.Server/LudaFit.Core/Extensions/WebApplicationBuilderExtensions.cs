@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Security.Authentication;
 using System.Text;
 using FluentValidation;
+using LudaFit.Core.BackgroundServices;
 using LudaFit.Core.Options;
 using LudaFit.Infrastructure.SQLite;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -42,7 +43,9 @@ internal static class WebApplicationBuilderExtensions
         builder.AddJwtBearer(tokenIssuer, tokenAudience, tokenKey, tokenLifetime);
 
         builder.Services.AddTypesToDi();
-        
+
+        builder.Services.AddHostedService<DeleteExpiredDiscountsBackgroundService>();
+
         return builder;
     }
     
