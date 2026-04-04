@@ -28,22 +28,15 @@ public sealed class Discount : BaseEntity
     //todo: написать фоновый процесс который будет отлавливать все не активные скидки и удалять их
     // может тогда вообще убрать статус?
 
-    public static Result<Discount> Create(DateOnly currentDate, DateOnly startDate, DateOnly endDate, uint percent)
+    public static Result<Discount> Create(DateRange dateRange, uint percent)
     {
-        Result<DateRange> createDateRangeResult = DateRange.Create(currentDate, startDate, endDate);
-
-        if (createDateRangeResult.IsFailure)
-        {
-            return Result<Discount>.Failure(createDateRangeResult);
-        }
-
         if (percent is > 100 or 0)
         {
             return new ErrorDetails("Відсоток знижки не може бути 0 або більше 100");
         }
 
         return new Discount(
-            createDateRangeResult.Value!,
+            dateRange,
             percent
         );
     }

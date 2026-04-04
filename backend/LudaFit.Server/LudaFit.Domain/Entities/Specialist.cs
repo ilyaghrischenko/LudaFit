@@ -29,10 +29,7 @@ public sealed class Specialist : BaseEntity
         string name,
         string photoUrl,
         string description,
-        int startWorkHour,
-        int startWorkMinute,
-        int endWorkHour,
-        int endWorkMinute)
+        TimeRange workTime)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -49,18 +46,11 @@ public sealed class Specialist : BaseEntity
             return new ErrorDetails("Опис не може бути пустим");
         }
 
-        Result<TimeRange> createWorkTimeResult = TimeRange.Create(startWorkHour, startWorkMinute, endWorkHour, endWorkMinute);
-
-        if (createWorkTimeResult.IsFailure)
-        {
-            return Result<Specialist>.Failure(createWorkTimeResult);
-        }
-
         return new Specialist(
             name,
             photoUrl,
             description,
-            createWorkTimeResult.Value!
+            workTime
         );
     }
 

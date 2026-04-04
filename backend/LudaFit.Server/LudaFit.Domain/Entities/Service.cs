@@ -1,4 +1,5 @@
 using LudaFit.Domain.Entities.Common;
+using LudaFit.Domain.ValueObjects;
 using LudaFit.SharedKernel.Models;
 
 namespace LudaFit.Domain.Entities;
@@ -98,9 +99,9 @@ public sealed class Service : BaseEntity
         return Result.Success();
     }
 
-    public Result AddDiscount(DateOnly currentDate, DateOnly startDate, DateOnly endDate, uint percent)
+    public Result AddDiscount(DateRange dateRange, uint percent)
     {
-        Result<Discount> createDiscountResult = Discount.Create(currentDate, startDate, endDate, percent);
+        Result<Discount> createDiscountResult = Discount.Create(dateRange, percent);
 
         if (createDiscountResult.IsFailure)
         {
