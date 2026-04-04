@@ -1,6 +1,7 @@
 using System.Net;
 using FluentAssertions;
 using LudaFit.Domain.Entities;
+using LudaFit.Domain.ValueObjects;
 using LudaFit.SharedKernel.Models;
 
 namespace LudaFit.Tests.Domain.Entities;
@@ -11,21 +12,44 @@ public sealed class DiagnosisTests
     public void Create_ShouldReturnSuccess_WhenNameAndBookingAreValid()
     {
         // Arrange
-        Booking booking = CreateValidBooking();
-        const string name = "Інсулінорезистентність";
+        Booking booking = CreateBooking();
+        const string diagnosisName = "Гіпертонія";
 
         // Act
-        Result<Diagnosis> result = Diagnosis.Create(name, booking);
+        Result<Diagnosis> result = Diagnosis.Create(diagnosisName, booking);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.IsFailure.Should().BeFalse();
         result.ErrorDetails.Should().BeNull();
         result.Value.Should().NotBeNull();
-        result.Value!.Name.Should().Be(name);
+        result.Value!.Name.Should().Be(diagnosisName);
         result.Value.Booking.Should().BeSameAs(booking);
         result.Value.BookingId.Should().Be(booking.Id);
         result.Value.Medicines.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Create_ShouldReturnSuccess_WhenMedicinesAreValidAndContainDuplicatesWithDifferentCasing()
+    {
+        // Arrange
+        Booking booking = CreateBooking();
+        const string diagnosisName = "Інсулінорезистентність";
+        IReadOnlyCollection<string> medicineNames = ["Метформін", " метформін ", "Омега-3"];
+
+        // Act
+        Result<Diagnosis> result = Diagnosis.Create(diagnosisName, booking, medicineNames);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().NotBeNull();
+        result.Value!.Name.Should().Be(diagnosisName);
+        result.Value.Booking.Should().BeSameAs(booking);
+        result.Value.Medicines.Should().HaveCount(2);
+        result.Value.Medicines.Select(medicine => medicine.Name)
+            .Should()
+            .BeEquivalentTo(["Метформін", "Омега-3"]);
+        result.Value.Medicines.Should().OnlyContain(medicine => ReferenceEquals(medicine.Diagnosis, result.Value));
     }
 
     [Theory]
@@ -33,14 +57,14 @@ public sealed class DiagnosisTests
     [InlineData("")]
     [InlineData(" ")]
     [InlineData("   ")]
-    public void Create_ShouldReturnFailure_WhenNameIsNullOrWhiteSpace(string? name)
+    public void Create_ShouldReturnFailure_WhenNameIsNullOrWhiteSpace(string? diagnosisName)
     {
         // Arrange
-        Booking booking = CreateValidBooking();
+        Booking booking = CreateBooking();
         const string expectedMessage = "Назва діагнозу не може бути пустою";
 
         // Act
-        Result<Diagnosis> result = Diagnosis.Create(name!, booking);
+        Result<Diagnosis> result = Diagnosis.Create(diagnosisName!, booking);
 
         // Assert
         result.IsSuccess.Should().BeFalse();
@@ -51,26 +75,28 @@ public sealed class DiagnosisTests
         result.ErrorDetails.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
-    [Fact]
-    public void CreateWithMedicines_ShouldReturnSuccess_WhenNameAndMedicinesAreValid()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData("   ")]
+    public void CreateWithMedicines_ShouldReturnFailure_WhenNameIsNullOrWhiteSpace(string? diagnosisName)
     {
         // Arrange
-        Booking booking = CreateValidBooking();
-        IReadOnlyCollection<string> medicineNames = [" Метформін ", "метформін", "  ", "Вітамін D"];
+        Booking booking = CreateBooking();
+        IReadOnlyCollection<string> medicineNames = ["Метформін"];
+        const string expectedMessage = "Назва діагнозу не може бути пустою";
 
         // Act
-        Result<Diagnosis> result = Diagnosis.Create("Інсулінорезистентність", booking, medicineNames);
+        Result<Diagnosis> result = Diagnosis.Create(diagnosisName!, booking, medicineNames);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.IsFailure.Should().BeFalse();
-        result.ErrorDetails.Should().BeNull();
-        result.Value.Should().NotBeNull();
-        result.Value!.Medicines.Should().HaveCount(2);
-        result.Value.Medicines.Select(medicine => medicine.Name)
-            .Should()
-            .Equal("Метформін", "Вітамін D");
-        result.Value.Medicines.Should().OnlyContain(medicine => ReferenceEquals(medicine.Diagnosis, result.Value));
+        result.IsSuccess.Should().BeFalse();
+        result.IsFailure.Should().BeTrue();
+        result.Value.Should().BeNull();
+        result.ErrorDetails.Should().NotBeNull();
+        result.ErrorDetails!.ErrorMessage.Should().Be(expectedMessage);
+        result.ErrorDetails.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Theory]
@@ -78,15 +104,15 @@ public sealed class DiagnosisTests
     [InlineData("")]
     [InlineData(" ")]
     [InlineData("   ")]
-    public void CreateWithMedicines_ShouldReturnFailure_WhenDiagnosisNameIsNullOrWhiteSpace(string? name)
+    public void CreateWithMedicines_ShouldReturnFailure_WhenAnyMedicineNameIsNullOrWhiteSpace(string? medicineName)
     {
         // Arrange
-        Booking booking = CreateValidBooking();
-        IReadOnlyCollection<string> medicineNames = ["Метформін"];
-        const string expectedMessage = "Назва діагнозу не може бути пустою";
+        Booking booking = CreateBooking();
+        IReadOnlyCollection<string> medicineNames = ["Метформін", medicineName!];
+        const string expectedMessage = "Назва ліків не може бути пустою";
 
         // Act
-        Result<Diagnosis> result = Diagnosis.Create(name!, booking, medicineNames);
+        Result<Diagnosis> result = Diagnosis.Create("Гастрит", booking, medicineNames);
 
         // Assert
         result.IsSuccess.Should().BeFalse();
@@ -102,7 +128,7 @@ public sealed class DiagnosisTests
     {
         // Arrange
         Diagnosis diagnosis = CreateDiagnosis();
-        const string newName = "Анемія";
+        const string newName = "Переддіабет";
 
         // Act
         Result result = diagnosis.ChangeName(newName);
@@ -123,7 +149,7 @@ public sealed class DiagnosisTests
     {
         // Arrange
         Diagnosis diagnosis = CreateDiagnosis();
-        const string currentName = "Інсулінорезистентність";
+        const string currentName = "Гіпертонія";
         const string expectedMessage = "Назва діагнозу не може бути пустою";
 
         // Act
@@ -139,41 +165,23 @@ public sealed class DiagnosisTests
     }
 
     [Fact]
-    public void AddMedicine_ShouldReturnSuccess_WhenMedicineNameIsValid()
+    public void AddMedicine_ShouldReturnSuccess_WhenNameIsValid()
     {
         // Arrange
         Diagnosis diagnosis = CreateDiagnosis();
+        const string medicineName = "  Метформін  ";
 
         // Act
-        Result result = diagnosis.AddMedicine(" Метформін ");
+        Result result = diagnosis.AddMedicine(medicineName);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.IsFailure.Should().BeFalse();
         result.ErrorDetails.Should().BeNull();
-        diagnosis.Medicines.Should().HaveCount(1);
-        diagnosis.Medicines.Single().Name.Should().Be("Метформін");
-        diagnosis.Medicines.Single().Diagnosis.Should().BeSameAs(diagnosis);
-    }
-
-    [Fact]
-    public void AddMedicine_ShouldReturnFailure_WhenMedicineAlreadyExistsIgnoringCaseAndWhitespace()
-    {
-        // Arrange
-        Diagnosis diagnosis = CreateDiagnosis();
-        diagnosis.AddMedicine("Метформін");
-        const string expectedMessage = "Ліки з name:  метФОрмін  вже існують";
-
-        // Act
-        Result result = diagnosis.AddMedicine(" метФОрмін ");
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.IsFailure.Should().BeTrue();
-        result.ErrorDetails.Should().NotBeNull();
-        result.ErrorDetails!.ErrorMessage.Should().Be(expectedMessage);
-        result.ErrorDetails.StatusCode.Should().Be(HttpStatusCode.Conflict);
-        diagnosis.Medicines.Should().HaveCount(1);
+        diagnosis.Medicines.Should().ContainSingle();
+        diagnosis.Medicines.First().Name.Should().Be("Метформін");
+        diagnosis.Medicines.First().Diagnosis.Should().BeSameAs(diagnosis);
+        diagnosis.Medicines.First().DiagnosisId.Should().Be(diagnosis.Id);
     }
 
     [Theory]
@@ -181,14 +189,14 @@ public sealed class DiagnosisTests
     [InlineData("")]
     [InlineData(" ")]
     [InlineData("   ")]
-    public void AddMedicine_ShouldReturnFailure_WhenNameIsNullOrWhiteSpace(string? name)
+    public void AddMedicine_ShouldReturnFailure_WhenNameIsNullOrWhiteSpace(string? medicineName)
     {
         // Arrange
         Diagnosis diagnosis = CreateDiagnosis();
         const string expectedMessage = "Назва ліків не може бути пустою";
 
         // Act
-        Result result = diagnosis.AddMedicine(name!);
+        Result result = diagnosis.AddMedicine(medicineName!);
 
         // Assert
         result.IsSuccess.Should().BeFalse();
@@ -200,14 +208,37 @@ public sealed class DiagnosisTests
     }
 
     [Fact]
-    public void AddMedicines_ShouldReturnSuccess_WhenNamesContainWhitespaceDuplicatesAndEmptyValues()
+    public void AddMedicine_ShouldReturnFailure_WhenMedicineAlreadyExistsIgnoringCase()
     {
         // Arrange
         Diagnosis diagnosis = CreateDiagnosis();
-        IReadOnlyCollection<string> names = [" Метформін ", "Вітамін D", "метформін", string.Empty, "   "];
+        Result initialAddResult = diagnosis.AddMedicine("Метформін");
+        const string duplicateName = "  метформін  ";
+        const string expectedMessage = "Ліки з name:   метформін   вже існують";
 
         // Act
-        Result result = diagnosis.AddMedicines(names);
+        Result result = diagnosis.AddMedicine(duplicateName);
+
+        // Assert
+        initialAddResult.IsSuccess.Should().BeTrue();
+        result.IsSuccess.Should().BeFalse();
+        result.IsFailure.Should().BeTrue();
+        result.ErrorDetails.Should().NotBeNull();
+        result.ErrorDetails!.ErrorMessage.Should().Be(expectedMessage);
+        result.ErrorDetails.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        diagnosis.Medicines.Should().ContainSingle();
+        diagnosis.Medicines.First().Name.Should().Be("Метформін");
+    }
+
+    [Fact]
+    public void AddMedicines_ShouldReturnSuccess_WhenNamesAreUniqueAfterNormalization()
+    {
+        // Arrange
+        Diagnosis diagnosis = CreateDiagnosis();
+        IReadOnlyCollection<string> medicineNames = ["Метформін", " метформін ", "Омега-3", "  Омега-3  ", "Цинк"];
+
+        // Act
+        Result result = diagnosis.AddMedicines(medicineNames);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -215,29 +246,54 @@ public sealed class DiagnosisTests
         result.ErrorDetails.Should().BeNull();
         diagnosis.Medicines.Select(medicine => medicine.Name)
             .Should()
-            .Equal("Метформін", "Вітамін D");
+            .BeEquivalentTo(["Метформін", "Омега-3", "Цинк"]);
     }
 
-    [Fact]
-    public void AddMedicines_ShouldReturnFailure_WhenAnyMedicineAlreadyExists()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData("   ")]
+    public void AddMedicines_ShouldReturnFailure_WhenAnyNameIsNullOrWhiteSpace(string? medicineName)
     {
         // Arrange
         Diagnosis diagnosis = CreateDiagnosis();
-        diagnosis.AddMedicine("Метформін");
-        IReadOnlyCollection<string> names = ["Вітамін D", " метФОрмін "];
-        const string expectedMessage = "Ліки з name: метФОрмін вже існують";
+        IReadOnlyCollection<string> medicineNames = ["Метформін", medicineName!];
+        const string expectedMessage = "Назва ліків не може бути пустою";
 
         // Act
-        Result result = diagnosis.AddMedicines(names);
+        Result result = diagnosis.AddMedicines(medicineNames);
 
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.IsFailure.Should().BeTrue();
         result.ErrorDetails.Should().NotBeNull();
         result.ErrorDetails!.ErrorMessage.Should().Be(expectedMessage);
+        result.ErrorDetails.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        diagnosis.Medicines.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void AddMedicines_ShouldReturnFailure_WhenAnyNameAlreadyExistsInDiagnosis()
+    {
+        // Arrange
+        Diagnosis diagnosis = CreateDiagnosis();
+        Result initialAddResult = diagnosis.AddMedicine("Метформін");
+        IReadOnlyCollection<string> medicineNames = ["Омега-3", "  метформін  "];
+        const string expectedMessage = "Ліки з name: метформін вже існують";
+
+        // Act
+        Result result = diagnosis.AddMedicines(medicineNames);
+
+        // Assert
+        initialAddResult.IsSuccess.Should().BeTrue();
+        result.IsSuccess.Should().BeFalse();
+        result.IsFailure.Should().BeTrue();
+        result.ErrorDetails.Should().NotBeNull();
+        result.ErrorDetails!.ErrorMessage.Should().Be(expectedMessage);
         result.ErrorDetails.StatusCode.Should().Be(HttpStatusCode.Conflict);
         diagnosis.Medicines.Should().ContainSingle();
-        diagnosis.Medicines.Single().Name.Should().Be("Метформін");
+        diagnosis.Medicines.First().Name.Should().Be("Метформін");
     }
 
     [Fact]
@@ -245,12 +301,14 @@ public sealed class DiagnosisTests
     {
         // Arrange
         Diagnosis diagnosis = CreateDiagnosis();
-        diagnosis.AddMedicine("Метформін");
+        Result addResult = diagnosis.AddMedicine("Метформін");
+        Medicine medicine = diagnosis.Medicines.Single();
 
         // Act
-        Result result = diagnosis.DeleteMedicine(0);
+        Result result = diagnosis.DeleteMedicine(medicine.Id);
 
         // Assert
+        addResult.IsSuccess.Should().BeTrue();
         result.IsSuccess.Should().BeTrue();
         result.IsFailure.Should().BeFalse();
         result.ErrorDetails.Should().BeNull();
@@ -262,8 +320,8 @@ public sealed class DiagnosisTests
     {
         // Arrange
         Diagnosis diagnosis = CreateDiagnosis();
-        const int missingId = 999;
-        const string expectedMessage = "Ліків з id: 999 не знайдено";
+        const int missingId = 42;
+        const string expectedMessage = "Ліків з id: 42 не знайдено";
 
         // Act
         Result result = diagnosis.DeleteMedicine(missingId);
@@ -281,12 +339,13 @@ public sealed class DiagnosisTests
     {
         // Arrange
         Diagnosis diagnosis = CreateDiagnosis();
-        diagnosis.AddMedicine("Метформін");
+        Result addResult = diagnosis.AddMedicine("Метформін");
 
         // Act
-        Result result = diagnosis.DeleteMedicine(" метФОрмін ");
+        Result result = diagnosis.DeleteMedicine("  метформін  ");
 
         // Assert
+        addResult.IsSuccess.Should().BeTrue();
         result.IsSuccess.Should().BeTrue();
         result.IsFailure.Should().BeFalse();
         result.ErrorDetails.Should().BeNull();
@@ -298,10 +357,11 @@ public sealed class DiagnosisTests
     {
         // Arrange
         Diagnosis diagnosis = CreateDiagnosis();
-        const string expectedMessage = "Ліків з name: Вітамін D не знайдено";
+        const string medicineName = "Нурофен";
+        const string expectedMessage = "Ліків з name: Нурофен не знайдено";
 
         // Act
-        Result result = diagnosis.DeleteMedicine("Вітамін D");
+        Result result = diagnosis.DeleteMedicine(medicineName);
 
         // Assert
         result.IsSuccess.Should().BeFalse();
@@ -316,12 +376,15 @@ public sealed class DiagnosisTests
     {
         // Arrange
         Diagnosis diagnosis = CreateDiagnosis();
-        diagnosis.AddMedicines(["Метформін", "Вітамін D"]);
+        Result addFirstMedicineResult = diagnosis.AddMedicine("Метформін");
+        Result addSecondMedicineResult = diagnosis.AddMedicine("Омега-3");
 
         // Act
         diagnosis.DeleteAllMedicines();
 
         // Assert
+        addFirstMedicineResult.IsSuccess.Should().BeTrue();
+        addSecondMedicineResult.IsSuccess.Should().BeTrue();
         diagnosis.Medicines.Should().BeEmpty();
     }
 
@@ -330,13 +393,15 @@ public sealed class DiagnosisTests
     {
         // Arrange
         Diagnosis diagnosis = CreateDiagnosis();
-        diagnosis.AddMedicine("Метформін");
-        const string newName = "Вітамін D";
+        Result addResult = diagnosis.AddMedicine("Метформін");
+        Medicine medicine = diagnosis.Medicines.Single();
+        const string newName = "Глюкофаж";
 
         // Act
-        Result result = diagnosis.ChangeMedicine(0, newName);
+        Result result = diagnosis.ChangeMedicine(medicine.Id, newName);
 
         // Assert
+        addResult.IsSuccess.Should().BeTrue();
         result.IsSuccess.Should().BeTrue();
         result.IsFailure.Should().BeFalse();
         result.ErrorDetails.Should().BeNull();
@@ -348,11 +413,11 @@ public sealed class DiagnosisTests
     {
         // Arrange
         Diagnosis diagnosis = CreateDiagnosis();
-        const int missingId = 999;
-        const string expectedMessage = "Ліків з id: 999 не знайдено";
+        const int missingId = 77;
+        const string expectedMessage = "Ліків з id: 77 не знайдено";
 
         // Act
-        Result result = diagnosis.ChangeMedicine(missingId, "Вітамін D");
+        Result result = diagnosis.ChangeMedicine(missingId, "Глюкофаж");
 
         // Assert
         result.IsSuccess.Should().BeFalse();
@@ -371,14 +436,16 @@ public sealed class DiagnosisTests
     {
         // Arrange
         Diagnosis diagnosis = CreateDiagnosis();
-        diagnosis.AddMedicine("Метформін");
+        Result addResult = diagnosis.AddMedicine("Метформін");
+        Medicine medicine = diagnosis.Medicines.Single();
         const string currentName = "Метформін";
         const string expectedMessage = "Назва ліків не може бути пустою";
 
         // Act
-        Result result = diagnosis.ChangeMedicine(0, newName!);
+        Result result = diagnosis.ChangeMedicine(medicine.Id, newName!);
 
         // Assert
+        addResult.IsSuccess.Should().BeTrue();
         result.IsSuccess.Should().BeFalse();
         result.IsFailure.Should().BeTrue();
         result.ErrorDetails.Should().NotBeNull();
@@ -389,27 +456,30 @@ public sealed class DiagnosisTests
 
     private static Diagnosis CreateDiagnosis()
     {
-        Result<Diagnosis> result = Diagnosis.Create("Інсулінорезистентність", CreateValidBooking());
-        return result.Value!;
+        Result<Diagnosis> diagnosisResult = Diagnosis.Create("Гіпертонія", CreateBooking());
+
+        diagnosisResult.IsSuccess.Should().BeTrue();
+
+        return diagnosisResult.Value!;
     }
 
-    private static Booking CreateValidBooking()
+    private static Booking CreateBooking()
     {
-        Result<Booking> result = Booking.Create(
+        Result<ClientMetrics> clientMetricsResult = ClientMetrics.Create(25, 180, 80.5f, 90);
+        Result<ClientContacts> clientContactsResult = ClientContacts.Create("+380671112233", "ivan.petrenko@example.com");
+        Result<Booking> bookingResult = Booking.Create(
             "Консультація",
             1500m,
             7,
             "Іван Петренко",
-            30,
-            180,
-            82.5f,
-            92,
+            clientMetricsResult.Value!,
             "Схуднення",
-            true,
-            true,
-            "+380671112233",
-            "ivan.petrenko@example.com");
+            clientContactsResult.Value!);
 
-        return result.Value!;
+        clientMetricsResult.IsSuccess.Should().BeTrue();
+        clientContactsResult.IsSuccess.Should().BeTrue();
+        bookingResult.IsSuccess.Should().BeTrue();
+
+        return bookingResult.Value!;
     }
 }

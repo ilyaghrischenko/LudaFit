@@ -10,8 +10,6 @@ public sealed record ClientHealth
     
     public string? Intolerances { get; init; }
     
-    public string? PhysicalActivities { get; init; }
-    
     public string? StressAndHowYouCopeWithIt { get; init; }
     
     public bool AnxietyTendency { get; init; }
@@ -22,14 +20,12 @@ public sealed record ClientHealth
         string? feelingUnwellComplaints,
         string? allergies,
         string? intolerances,
-        string? physicalActivities,
         string? stressAndHowYouCopeWithIt,
         bool anxietyTendency)
     {
         FeelingUnwellComplaints = feelingUnwellComplaints;
         Allergies = allergies;
         Intolerances = intolerances;
-        PhysicalActivities = physicalActivities;
         StressAndHowYouCopeWithIt = stressAndHowYouCopeWithIt;
         AnxietyTendency = anxietyTendency;
     }
@@ -39,7 +35,6 @@ public sealed record ClientHealth
         string? feelingUnwellComplaints = null,
         string? allergies = null,
         string? intolerances = null,
-        string? physicalActivities = null,
         string? stressAndHowYouCopeWithIt = null)
     {
         if (feelingUnwellComplaints is not null && string.IsNullOrWhiteSpace(feelingUnwellComplaints))
@@ -57,11 +52,6 @@ public sealed record ClientHealth
             return new ErrorDetails("Не переносимість їжі не може бути пустим");
         }
         
-        if (physicalActivities is not null && string.IsNullOrWhiteSpace(physicalActivities))
-        {
-            return new ErrorDetails("Фізична активність не може бути пустою");
-        }
-        
         if (stressAndHowYouCopeWithIt is not null && string.IsNullOrWhiteSpace(stressAndHowYouCopeWithIt))
         {
             return new ErrorDetails("Як справляєтесь зі стресом не може бути пустим полем");
@@ -71,7 +61,6 @@ public sealed record ClientHealth
             feelingUnwellComplaints,
             allergies,
             intolerances,
-            physicalActivities,
             stressAndHowYouCopeWithIt,
             anxietyTendency
         );

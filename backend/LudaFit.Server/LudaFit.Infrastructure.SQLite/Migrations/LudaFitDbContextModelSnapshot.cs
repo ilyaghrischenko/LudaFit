@@ -43,11 +43,11 @@ namespace LudaFit.Infrastructure.SQLite.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<bool>("FoodWeighing")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("FullName")
                         .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PhysicalActivities")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Purpose")
@@ -77,48 +77,6 @@ namespace LudaFit.Infrastructure.SQLite.Migrations
                                 .IsRequired()
                                 .HasColumnType("TEXT")
                                 .HasColumnName("ClientPhoneNumber");
-                        });
-
-                    b.ComplexProperty<Dictionary<string, object>>("ClientFoodPreferences", "LudaFit.Domain.Entities.Booking.ClientFoodPreferences#ClientFoodPreferences", b1 =>
-                        {
-                            b1.IsRequired();
-
-                            b1.Property<string>("FavoriteFoods")
-                                .HasColumnType("TEXT")
-                                .HasColumnName("ClientFavoriteFoods");
-
-                            b1.Property<string>("UnfavoriteFoods")
-                                .HasColumnType("TEXT")
-                                .HasColumnName("ClientUnfavoriteFoods");
-                        });
-
-                    b.ComplexProperty<Dictionary<string, object>>("ClientHealth", "LudaFit.Domain.Entities.Booking.ClientHealth#ClientHealth", b1 =>
-                        {
-                            b1.IsRequired();
-
-                            b1.Property<string>("Allergies")
-                                .HasColumnType("TEXT")
-                                .HasColumnName("ClientAllergies");
-
-                            b1.Property<bool>("AnxietyTendency")
-                                .HasColumnType("INTEGER")
-                                .HasColumnName("ClientAnxietyTendency");
-
-                            b1.Property<string>("FeelingUnwellComplaints")
-                                .HasColumnType("TEXT")
-                                .HasColumnName("ClientFeelingUnwellComplaints");
-
-                            b1.Property<string>("Intolerances")
-                                .HasColumnType("TEXT")
-                                .HasColumnName("ClientIntolerances");
-
-                            b1.Property<string>("PhysicalActivities")
-                                .HasColumnType("TEXT")
-                                .HasColumnName("ClientPhysicalActivities");
-
-                            b1.Property<string>("StressAndHowYouCopeWithIt")
-                                .HasColumnType("TEXT")
-                                .HasColumnName("ClientStressAndHowYouCopeWithIt");
                         });
 
                     b.ComplexProperty<Dictionary<string, object>>("ClientMetrics", "LudaFit.Domain.Entities.Booking.ClientMetrics#ClientMetrics", b1 =>
@@ -279,6 +237,88 @@ namespace LudaFit.Infrastructure.SQLite.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Specialists", (string)null);
+                });
+
+            modelBuilder.Entity("LudaFit.Domain.Entities.Booking", b =>
+                {
+                    b.OwnsOne("LudaFit.Domain.ValueObjects.ClientAdditionalInformation", "ClientAdditionalInformation", b1 =>
+                        {
+                            b1.Property<int>("BookingId")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<bool>("FoodWeighing")
+                                .HasColumnType("INTEGER")
+                                .HasColumnName("FoodWeighing");
+
+                            b1.HasKey("BookingId");
+
+                            b1.ToTable("Bookings");
+
+                            b1.WithOwner()
+                                .HasForeignKey("BookingId");
+
+                            b1.OwnsOne("LudaFit.Domain.ValueObjects.ClientFoodPreferences", "ClientFoodPreferences", b2 =>
+                                {
+                                    b2.Property<int>("ClientAdditionalInformationBookingId")
+                                        .HasColumnType("INTEGER");
+
+                                    b2.Property<string>("FavoriteFoods")
+                                        .HasColumnType("TEXT")
+                                        .HasColumnName("ClientFavoriteFoods");
+
+                                    b2.Property<string>("UnfavoriteFoods")
+                                        .HasColumnType("TEXT")
+                                        .HasColumnName("ClientUnfavoriteFoods");
+
+                                    b2.HasKey("ClientAdditionalInformationBookingId");
+
+                                    b2.ToTable("Bookings");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("ClientAdditionalInformationBookingId");
+                                });
+
+                            b1.OwnsOne("LudaFit.Domain.ValueObjects.ClientHealth", "ClientHealth", b2 =>
+                                {
+                                    b2.Property<int>("ClientAdditionalInformationBookingId")
+                                        .HasColumnType("INTEGER");
+
+                                    b2.Property<string>("Allergies")
+                                        .HasColumnType("TEXT")
+                                        .HasColumnName("ClientAllergies");
+
+                                    b2.Property<bool>("AnxietyTendency")
+                                        .HasColumnType("INTEGER")
+                                        .HasColumnName("ClientAnxietyTendency");
+
+                                    b2.Property<string>("FeelingUnwellComplaints")
+                                        .HasColumnType("TEXT")
+                                        .HasColumnName("ClientFeelingUnwellComplaints");
+
+                                    b2.Property<string>("Intolerances")
+                                        .HasColumnType("TEXT")
+                                        .HasColumnName("ClientIntolerances");
+
+                                    b2.Property<string>("StressAndHowYouCopeWithIt")
+                                        .HasColumnType("TEXT")
+                                        .HasColumnName("ClientStressAndHowYouCopeWithIt");
+
+                                    b2.HasKey("ClientAdditionalInformationBookingId");
+
+                                    b2.ToTable("Bookings");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("ClientAdditionalInformationBookingId");
+                                });
+
+                            b1.Navigation("ClientFoodPreferences")
+                                .IsRequired();
+
+                            b1.Navigation("ClientHealth")
+                                .IsRequired();
+                        });
+
+                    b.Navigation("ClientAdditionalInformation");
                 });
 
             modelBuilder.Entity("LudaFit.Domain.Entities.Diagnosis", b =>

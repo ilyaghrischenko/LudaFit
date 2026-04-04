@@ -17,17 +17,15 @@ public sealed class Booking : BaseEntity
 
     public string Purpose { get; private set; } = null!;
 
-    private readonly List<Diagnosis> _diagnoses = [];
-    public IReadOnlyCollection<Diagnosis> Diagnoses => _diagnoses.AsReadOnly();
-
-    public ClientHealth ClientHealth { get; private set; } = null!;
-
-    public ClientFoodPreferences ClientFoodPreferences { get; private set; } = null!;
+    public string? PhysicalActivities { get; private set; }
     
-    public bool FoodWeighing { get; private set; }
-
     public ClientContacts ClientContacts { get; private set; } = null!;
 
+    public ClientAdditionalInformation? ClientAdditionalInformation { get; private set; }
+    
+    private readonly List<Diagnosis> _diagnoses = [];
+    public IReadOnlyCollection<Diagnosis> Diagnoses => _diagnoses.AsReadOnly();
+    
     private Booking() { }
 
     private Booking(
@@ -37,10 +35,9 @@ public sealed class Booking : BaseEntity
         string fullName,
         ClientMetrics clientMetrics,
         string purpose,
-        ClientHealth clientHealth,
-        ClientFoodPreferences clientFoodPreferences,
-        bool foodWeighing,
-        ClientContacts clientContacts)
+        ClientAdditionalInformation? clientAdditionalInformation,
+        ClientContacts clientContacts,
+        string? physicalActivities = null)
     {
         ServiceName = serviceName;
         ServicePrice = servicePrice;
@@ -48,9 +45,8 @@ public sealed class Booking : BaseEntity
         FullName = fullName;
         ClientMetrics = clientMetrics;
         Purpose = purpose;
-        ClientHealth = clientHealth;
-        ClientFoodPreferences = clientFoodPreferences;
-        FoodWeighing = foodWeighing;
+        ClientAdditionalInformation = clientAdditionalInformation;
+        PhysicalActivities = physicalActivities;
         ClientContacts = clientContacts;
     }
 
@@ -59,23 +55,12 @@ public sealed class Booking : BaseEntity
         decimal servicePrice,
         int serviceId,
         string fullName,
-        uint age,
-        uint height,
-        float weight,
-        uint waistSize,
+        ClientMetrics clientMetrics,
         string purpose,
-        bool anxietyTendency,
-        bool foodWeighing,
-        string phoneNumber,
-        string email,
-        CreateDiagnosisForBooking[]? diagnosesForBooking = null,
-        string? feelingUnwellComplaints = null,
-        string? allergies = null,
-        string? intolerances = null,
-        string? favoriteFoods = null,
-        string? unfavoriteFoods = null,
+        ClientContacts clientContacts,
         string? physicalActivities = null,
-        string? stressAndHowYouCopeWithIt = null)
+        CreateDiagnosisForBooking[]? diagnosesForBooking = null,
+        ClientAdditionalInformation? clientAdditionalInformation = null)
     {
         if (string.IsNullOrWhiteSpace(serviceName))
         {
@@ -101,70 +86,39 @@ public sealed class Booking : BaseEntity
         {
             return new ErrorDetails("Мета схуднення не може бути пустою");
         }
-
-        Result<ClientContacts> createClientContacts = ClientContacts.Create(phoneNumber, email);
-
-        if (createClientContacts.IsFailure)
-        {
-            return Result<Booking>.Failure(createClientContacts);
-        }
-
-        Result<ClientMetrics> createClientMetricsResult = ClientMetrics.Create(age, height, weight, waistSize);
-
-        if (createClientMetricsResult.IsFailure)
-        {
-            return Result<Booking>.Failure(createClientMetricsResult);
-        }
-
-        Result<ClientHealth> createHealthQuestionnaireResult = ClientHealth.Create(
-            anxietyTendency,
-            feelingUnwellComplaints,
-            allergies,
-            intolerances,
-            physicalActivities,
-            stressAndHowYouCopeWithIt
-        );
-
-        if (createHealthQuestionnaireResult.IsFailure)
-        {
-            return Result<Booking>.Failure(createHealthQuestionnaireResult);
-        }
         
-        Result<ClientFoodPreferences> createClientFoodPreferencesResult = ClientFoodPreferences.Create(favoriteFoods, unfavoriteFoods);
-
-        if (createClientFoodPreferencesResult.IsFailure)
+        if (physicalActivities is not null && string.IsNullOrWhiteSpace(physicalActivities))
         {
-            return Result<Booking>.Failure(createClientFoodPreferencesResult);
+            return new ErrorDetails("Фізична активність не може бути пустою");
         }
-        
+
         Booking booking = new(
             serviceName,
             servicePrice,
             serviceId,
             fullName,
-            createClientMetricsResult.Value!,
+            clientMetrics,
             purpose,
-            createHealthQuestionnaireResult.Value!,
-            createClientFoodPreferencesResult.Value!,
-            foodWeighing,
-            createClientContacts.Value!
+            clientAdditionalInformation,
+            clientContacts,
+            physicalActivities
         );
-
-        if (diagnosesForBooking is null)
+        
+        if (diagnosesForBooking is null || diagnosesForBooking.Length == 0)
         {
             return booking;
         }
-
+        
         Result addDiagnosesResult = booking.AddDiagnoses(diagnosesForBooking);
 
         if (addDiagnosesResult.IsFailure)
         {
             return Result<Booking>.Failure(addDiagnosesResult);
         }
-        
+
         return booking;
     }
-
+    
     private Result AddDiagnoses(CreateDiagnosisForBooking[] diagnosesForBooking)
     {
         List<Diagnosis> diagnoses = new(diagnosesForBooking.Length);
@@ -172,7 +126,7 @@ public sealed class Booking : BaseEntity
         foreach (CreateDiagnosisForBooking diagnosisForBooking in diagnosesForBooking)
         {
             bool alreadyExists = _diagnoses.Any(existing => existing.Name.Trim().Equals(diagnosisForBooking.Name.Trim(), StringComparison.OrdinalIgnoreCase))
-                || diagnoses.Any(existing => existing.Name.Trim().Equals(diagnosisForBooking.Name.Trim(), StringComparison.OrdinalIgnoreCase));
+                                 || diagnoses.Any(existing => existing.Name.Trim().Equals(diagnosisForBooking.Name.Trim(), StringComparison.OrdinalIgnoreCase));
 
             if (alreadyExists)
             {

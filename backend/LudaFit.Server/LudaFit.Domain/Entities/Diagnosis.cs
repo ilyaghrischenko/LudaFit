@@ -94,8 +94,12 @@ public sealed class Diagnosis : BaseEntity
 
     public Result AddMedicines(IReadOnlyCollection<string> names)
     {
+        if (names.Any(string.IsNullOrWhiteSpace))
+        {
+            return new ErrorDetails("Назва ліків не може бути пустою");
+        }
+        
         string[] uniqueNames = names
-            .Where(name => !string.IsNullOrWhiteSpace(name))
             .Select(name => name.Trim())
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();

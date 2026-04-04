@@ -35,8 +35,8 @@ public sealed class BookingEntityConfiguration : IEntityTypeConfiguration<Bookin
         builder.Property(booking => booking.Purpose)
             .IsRequired();
 
-        builder.Property(booking => booking.FoodWeighing)
-            .IsRequired();
+        builder.Property(booking => booking.PhysicalActivities)
+            .IsRequired(false);
     }
 
     private static void ConfigureValueObjects(EntityTypeBuilder<Booking> builder)
@@ -60,37 +60,6 @@ public sealed class BookingEntityConfiguration : IEntityTypeConfiguration<Bookin
                 .HasColumnName("ClientWaistSize");
         });
 
-        builder.ComplexProperty<ClientHealth>(booking => booking.ClientHealth, healthQuestionnaire =>
-        {
-            healthQuestionnaire.Property(hq => hq.FeelingUnwellComplaints)
-                .HasColumnName("ClientFeelingUnwellComplaints");
-
-            healthQuestionnaire.Property(hq => hq.Allergies)
-                .HasColumnName("ClientAllergies");
-
-            healthQuestionnaire.Property(hq => hq.Intolerances)
-                .HasColumnName("ClientIntolerances");
-
-            healthQuestionnaire.Property(hq => hq.PhysicalActivities)
-                .HasColumnName("ClientPhysicalActivities");
-
-            healthQuestionnaire.Property(hq => hq.StressAndHowYouCopeWithIt)
-                .HasColumnName("ClientStressAndHowYouCopeWithIt");
-
-            healthQuestionnaire.Property(hq => hq.AnxietyTendency)
-                .IsRequired()
-                .HasColumnName("ClientAnxietyTendency");
-        });
-        
-        builder.ComplexProperty<ClientFoodPreferences>(booking => booking.ClientFoodPreferences, clientFoodPreferences =>
-        {
-            clientFoodPreferences.Property(cfp => cfp.FavoriteFoods)
-                .HasColumnName("ClientFavoriteFoods");
-            
-            clientFoodPreferences.Property(cfp => cfp.UnfavoriteFoods)
-                .HasColumnName("ClientUnfavoriteFoods");
-        });
-
         builder.ComplexProperty<ClientContacts>(booking => booking.ClientContacts, clientContacts =>
         {
             clientContacts.Property(cc => cc.Email)
@@ -101,6 +70,41 @@ public sealed class BookingEntityConfiguration : IEntityTypeConfiguration<Bookin
             clientContacts.Property(cc => cc.PhoneNumber)
                 .IsRequired()
                 .HasColumnName("ClientPhoneNumber");
+        });
+        
+        builder.OwnsOne<ClientAdditionalInformation>(booking => booking.ClientAdditionalInformation, clientAdditionalInformation =>
+        {
+            clientAdditionalInformation.OwnsOne<ClientHealth>(cai => cai.ClientHealth, clientHealth =>
+            {
+                clientHealth.Property(hq => hq.FeelingUnwellComplaints)
+                    .HasColumnName("ClientFeelingUnwellComplaints");
+
+                clientHealth.Property(hq => hq.Allergies)
+                    .HasColumnName("ClientAllergies");
+
+                clientHealth.Property(hq => hq.Intolerances)
+                    .HasColumnName("ClientIntolerances");
+
+                clientHealth.Property(hq => hq.StressAndHowYouCopeWithIt)
+                    .HasColumnName("ClientStressAndHowYouCopeWithIt");
+
+                clientHealth.Property(hq => hq.AnxietyTendency)
+                    .IsRequired()
+                    .HasColumnName("ClientAnxietyTendency");
+            });
+        
+            clientAdditionalInformation.OwnsOne<ClientFoodPreferences>(cai => cai.ClientFoodPreferences, clientFoodPreferences =>
+            {
+                clientFoodPreferences.Property(cfp => cfp.FavoriteFoods)
+                    .HasColumnName("ClientFavoriteFoods");
+            
+                clientFoodPreferences.Property(cfp => cfp.UnfavoriteFoods)
+                    .HasColumnName("ClientUnfavoriteFoods");
+            });
+            
+            clientAdditionalInformation.Property(cai => cai.FoodWeighing)
+                .HasColumnName("FoodWeighing")
+                .IsRequired();
         });
     }
 
