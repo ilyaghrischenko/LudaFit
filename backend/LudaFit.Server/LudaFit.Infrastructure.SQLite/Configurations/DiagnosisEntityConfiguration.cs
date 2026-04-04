@@ -8,9 +8,17 @@ public sealed class DiagnosisEntityConfiguration : IEntityTypeConfiguration<Diag
 {
     public void Configure(EntityTypeBuilder<Diagnosis> builder)
     {
+        builder.ToTable("Diagnoses");
+        
+        builder.HasKey(diagnosis => diagnosis.Id);
+        
         ConfigureBasicProperties(builder);
         
         ConfigureBookingRelation(builder);
+        
+        ConfigureMedicineRelation(builder);
+        
+        ConfigureIndexes(builder);
     }
 
     private static void ConfigureBasicProperties(EntityTypeBuilder<Diagnosis> builder)
@@ -43,5 +51,13 @@ public sealed class DiagnosisEntityConfiguration : IEntityTypeConfiguration<Diag
         
         builder.Navigation("_medicines")
             .UsePropertyAccessMode(PropertyAccessMode.Field);
+    }
+
+    private static void ConfigureIndexes(EntityTypeBuilder<Diagnosis> builder)
+    {
+        builder.HasIndex(diagnosis => diagnosis.BookingId);
+        
+        builder.HasIndex(diagnosis => diagnosis.Name)
+            .IsUnique();
     }
 }

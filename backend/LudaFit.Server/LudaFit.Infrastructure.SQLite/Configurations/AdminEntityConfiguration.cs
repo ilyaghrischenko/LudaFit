@@ -17,5 +17,8 @@ public sealed class AdminEntityConfiguration : IEntityTypeConfiguration<Admin>
         
         builder.Property(admin => admin.PasswordHash)
             .IsRequired();
+
+        builder.HasIndex(admin => admin.Login)
+            .IsUnique();
     }
 }

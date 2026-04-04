@@ -15,6 +15,8 @@ public sealed class ServiceEntityConfiguration : IEntityTypeConfiguration<Servic
         ConfigureBasicProperties(builder);
         
         ConfigureDiscountRelation(builder);
+        
+        ConfigureIndexes(builder);
     }
 
     private static void ConfigureBasicProperties(EntityTypeBuilder<Service> builder)
@@ -39,5 +41,11 @@ public sealed class ServiceEntityConfiguration : IEntityTypeConfiguration<Servic
         
         builder.Navigation(service => service.Discount)
             .UsePropertyAccessMode(PropertyAccessMode.Property);
+    }
+
+    private static void ConfigureIndexes(EntityTypeBuilder<Service> builder)
+    {
+        builder.HasIndex(service => service.Name)
+            .IsUnique();
     }
 }

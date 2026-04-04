@@ -14,5 +14,8 @@ public sealed class MedicineEntityConfiguration : IEntityTypeConfiguration<Medic
         
         builder.Property(medicine => medicine.Name)
             .IsRequired();
+
+        builder.HasIndex(medicine => medicine.Name)
+            .IsUnique();
     }
 }

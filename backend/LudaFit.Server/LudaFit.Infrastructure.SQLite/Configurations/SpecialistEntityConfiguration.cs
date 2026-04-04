@@ -16,6 +16,8 @@ public sealed class SpecialistEntityConfiguration : IEntityTypeConfiguration<Spe
         ConfigureBasicProperties(builder);
         
         ConfigureValueObjects(builder);
+
+        ConfigureIndexes(builder);
     }
 
     private static void ConfigureBasicProperties(EntityTypeBuilder<Specialist> builder)
@@ -42,5 +44,11 @@ public sealed class SpecialistEntityConfiguration : IEntityTypeConfiguration<Spe
                 .IsRequired()
                 .HasColumnName("WorkTimeEnd");
         });
+    }
+
+    private static void ConfigureIndexes(EntityTypeBuilder<Specialist> builder)
+    {
+        builder.HasIndex(specialist => specialist.Name)
+            .IsUnique();
     }
 }
