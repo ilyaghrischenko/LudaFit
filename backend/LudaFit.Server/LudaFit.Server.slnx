@@ -1,9 +1,13 @@
 <Solution>
-  <Project Path="LudaFit.Core\LudaFit.Core.csproj" />
-  <Project Path="LudaFit.Domain/LudaFit.Domain.csproj" />
-  <Project Path="LudaFit.Infrastructure.AzureBlobStorage/LudaFit.Infrastructure.AzureBlobStorage.csproj" />
-  <Project Path="LudaFit.Infrastructure.Gmail/LudaFit.Infrastructure.Gmail.csproj" />
-  <Project Path="LudaFit.Infrastructure.SQLite\LudaFit.Infrastructure.SQLite.csproj" />
-  <Project Path="LudaFit.SharedKernel/LudaFit.SharedKernel.csproj" />
-  <Project Path="LudaFit.Tests/LudaFit.Tests.csproj" />
+  <Folder Name="/src/">
+    <Project Path="LudaFit.Core\LudaFit.Core.csproj" />
+    <Project Path="LudaFit.Domain/LudaFit.Domain.csproj" />
+    <Project Path="LudaFit.Infrastructure.AzureBlobStorage/LudaFit.Infrastructure.AzureBlobStorage.csproj" />
+    <Project Path="LudaFit.Infrastructure.Gmail/LudaFit.Infrastructure.Gmail.csproj" />
+    <Project Path="LudaFit.Infrastructure.SQLite\LudaFit.Infrastructure.SQLite.csproj" />
+    <Project Path="LudaFit.SharedKernel/LudaFit.SharedKernel.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="LudaFit.UnitTests\LudaFit.UnitTests.csproj" />
+  </Folder>
 </Solution>

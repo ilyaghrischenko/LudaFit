@@ -3,7 +3,7 @@ using FluentAssertions;
 using LudaFit.Domain.ValueObjects;
 using LudaFit.SharedKernel.Models;
 
-namespace LudaFit.Tests.Domain.ValueObjects;
+namespace LudaFit.UnitTests.Domain.ValueObjects;
 
 public sealed class ClientFoodPreferencesTests
 {

@@ -2,7 +2,7 @@ using FluentAssertions;
 using LudaFit.Domain.Entities;
 using LudaFit.SharedKernel.Models;
 
-namespace LudaFit.Tests.Domain.Entities;
+namespace LudaFit.UnitTests.Domain.Entities;
 
 public sealed class AdminTests
 {
