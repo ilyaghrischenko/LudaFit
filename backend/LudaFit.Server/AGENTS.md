@@ -12,6 +12,7 @@
 - **xUnit + FluentAssertions**.
 - **MailKit**.
 - **Azure Blob Storage**.
+- **Scalar for API documentation**.
 
 ## Critical Coding Rules (MUST FOLLOW)
 - **Typing:** Use EXPLICIT types. Use `var` ONLY when the type is obvious from the right side (e.g., `new()`).
