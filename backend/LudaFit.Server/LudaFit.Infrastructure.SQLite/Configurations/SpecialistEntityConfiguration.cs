@@ -16,6 +16,8 @@ public sealed class SpecialistEntityConfiguration : IEntityTypeConfiguration<Spe
         ConfigureBasicProperties(builder);
         
         ConfigureValueObjects(builder);
+        
+        ConfigureSocialNetworkRelation(builder);
 
         ConfigureIndexes(builder);
     }
@@ -44,6 +46,20 @@ public sealed class SpecialistEntityConfiguration : IEntityTypeConfiguration<Spe
                 .IsRequired()
                 .HasColumnName("WorkTimeEnd");
         });
+    }
+
+    private static void ConfigureSocialNetworkRelation(EntityTypeBuilder<Specialist> builder)
+    {
+        builder.HasMany<SocialNetwork>("_socialNetworks")
+            .WithOne(socialNetwork => socialNetwork.Specialist)
+            .HasForeignKey(socialNetwork => socialNetwork.SpecialistId)
+            .OnDelete(DeleteBehavior.Cascade)
+            .IsRequired();
+        
+        builder.Ignore(specialist => specialist.SocialNetworks);
+        
+        builder.Navigation("_socialNetworks")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 
     private static void ConfigureIndexes(EntityTypeBuilder<Specialist> builder)

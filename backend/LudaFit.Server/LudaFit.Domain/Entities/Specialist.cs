@@ -15,6 +15,9 @@ public sealed class Specialist : BaseEntity
 
     public TimeRange WorkTime { get; private set; } = null!;
 
+    private readonly List<SocialNetwork> _socialNetworks = [];
+    public IReadOnlyCollection<SocialNetwork> SocialNetworks => _socialNetworks.AsReadOnly();
+
     private Specialist() { }
 
     private Specialist(string name, string photoUrl, string description, TimeRange workTime)
@@ -114,4 +117,66 @@ public sealed class Specialist : BaseEntity
         WorkTime = createNewWorkTimeResult.Value!;
         return Result.Success();
     }
+
+    public Result AddSocialNetwork(string name, string url, string photoUrl)
+    {
+        bool alreadyExists = _socialNetworks.Any(sn => sn.Name.Equals(name.Trim(), StringComparison.OrdinalIgnoreCase));
+
+        if (alreadyExists)
+        {
+            return new ErrorDetails(
+                "Соціальна мережа з такою назвою вже існує",
+                HttpStatusCode.Conflict
+            );
+        }
+        
+        Result<SocialNetwork> createSocialNetworkResult = SocialNetwork.Create(name, url, photoUrl, this);
+
+        if (createSocialNetworkResult.IsFailure)
+        {
+            return createSocialNetworkResult;
+        }
+        
+        _socialNetworks.Add(createSocialNetworkResult.Value!);
+        return Result.Success();
+    }
+
+    public Result AddSocialNetworks(CreateSocialNetworkForSpecialist[] socialNetworks)
+    {
+        List<SocialNetwork> newSocialNetworks = new(socialNetworks.Length);
+        
+        foreach (var createSocialNetworkForSpecialist in socialNetworks)
+        {
+            bool alreadyExists = _socialNetworks.Any(sn => sn.Name.Equals(createSocialNetworkForSpecialist.Name.Trim(), StringComparison.OrdinalIgnoreCase));
+
+            if (alreadyExists)
+            {
+                return new ErrorDetails(
+                    "Соціальна мережа з такою назвою вже існує",
+                    HttpStatusCode.Conflict
+                );
+            }
+
+            Result<SocialNetwork> createSocialNetworkResult = SocialNetwork.Create(
+                createSocialNetworkForSpecialist.Name,
+                createSocialNetworkForSpecialist.Url,
+                createSocialNetworkForSpecialist.PhotoUrl,
+                this
+            );
+
+            if (createSocialNetworkResult.IsFailure)
+            {
+                return createSocialNetworkResult;
+            }
+            
+            newSocialNetworks.Add(createSocialNetworkResult.Value!);
+        }
+
+        _socialNetworks.AddRange(newSocialNetworks);
+        return Result.Success();
+    }
 }
+
+#pragma warning disable SA1402
+public sealed record CreateSocialNetworkForSpecialist(string Name, string Url, string PhotoUrl);
+#pragma warning restore SA1402

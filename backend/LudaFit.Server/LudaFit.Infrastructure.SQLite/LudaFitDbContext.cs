@@ -16,6 +16,7 @@ public sealed class LudaFitDbContext : DbContext
     public DbSet<Discount> Discounts { get; set; }
     public DbSet<Medicine> Medicines { get; set; }
     public DbSet<Service> Services { get; set; }
+    public DbSet<SocialNetwork> SocialNetworks { get; set; }
     public DbSet<Specialist> Specialists { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
