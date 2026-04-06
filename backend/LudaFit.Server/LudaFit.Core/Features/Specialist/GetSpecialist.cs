@@ -5,7 +5,7 @@ using LudaFit.Domain.Entities;
 using LudaFit.Infrastructure.SQLite;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using SpecialistEntity = LudaFit.Domain.Entities.Specialist;
+using SocialNetworkEntity = LudaFit.Domain.Entities.SocialNetwork;
 
 namespace LudaFit.Core.Features.Specialist;
 
@@ -52,7 +52,7 @@ internal static class GetSpecialist
                     entity.Description,
                     entity.WorkTime.Start,
                     entity.WorkTime.End,
-                    EF.Property<List<SocialNetwork>>(entity, "_socialNetworks")
+                    EF.Property<List<SocialNetworkEntity>>(entity, "_socialNetworks")
                         .Select(sn => new SocialNetworkDto(
                             sn.Id,
                             sn.Name,
