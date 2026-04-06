@@ -42,12 +42,26 @@ internal static class WebApplicationBuilderExtensions
         string tokenKey = builder.Configuration.GetOrThrow("TOKEN_KEY");
         string tokenLifetime = builder.Configuration.GetOrThrow("TOKEN_LIFETIME");
         
-        builder.AddJwtBearer(tokenIssuer, tokenAudience, tokenKey, tokenLifetime);
+        string email = builder.Configuration.GetOrThrow("SPECIALIST_EMAIL");
+        
+        builder
+            .AddJwtBearer(tokenIssuer, tokenAudience, tokenKey, tokenLifetime)
+            .AddMailKit(email);
 
         builder.Services.AddTypesToDi();
 
         builder.Services.AddHostedService<DeleteExpiredDiscountsBackgroundService>();
 
+        return builder;
+    }
+
+    private static WebApplicationBuilder AddMailKit(this WebApplicationBuilder builder, string email)
+    {
+        builder.Services.Configure<EmailOptions>(options =>
+        {
+            options.Email = email;
+        });
+        
         return builder;
     }
     
