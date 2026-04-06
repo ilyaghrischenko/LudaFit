@@ -30,6 +30,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="Features\Booking\" />
       <Folder Include="Features\Page\" />
       <Folder Include="Features\Service\" />
       <Folder Include="Features\Specialist\" />

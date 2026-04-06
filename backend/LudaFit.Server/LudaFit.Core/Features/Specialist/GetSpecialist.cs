@@ -1,6 +1,7 @@
 using FluentValidation;
 using FluentValidation.Results;
 using LudaFit.Core.Features.Common.Endpoints;
+using LudaFit.Domain.Entities;
 using LudaFit.Infrastructure.SQLite;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -41,31 +42,32 @@ internal static class GetSpecialist
             [FromServices] LudaFitDbContext db,
             CancellationToken cancellationToken)
         {
-            SpecialistEntity? specialist = await db.Specialists
+            Response? response = await db.Specialists
                 .AsNoTracking()
                 .Include("_socialNetworks")
+                .Select(entity => new Response(
+                    entity.Id,
+                    entity.Name,
+                    entity.PhotoUrl,
+                    entity.Description,
+                    entity.WorkTime.Start,
+                    entity.WorkTime.End,
+                    EF.Property<List<SocialNetwork>>(entity, "_socialNetworks")
+                        .Select(sn => new SocialNetworkDto(
+                            sn.Id,
+                            sn.Name,
+                            sn.Url,
+                            sn.PhotoUrl
+                        ))
+                    )
+                )
                 .FirstOrDefaultAsync(cancellationToken);
 
-            if (specialist is null)
+            if (response is null)
             {
                 return Results.NotFound();
             }
-
-            Response response = new(
-                specialist.Id,
-                specialist.Name,
-                specialist.PhotoUrl,
-                specialist.Description,
-                specialist.WorkTime.Start,
-                specialist.WorkTime.End,
-                specialist.SocialNetworks.Select(sn => new SocialNetworkDto(
-                    sn.Id,
-                    sn.Name,
-                    sn.Url,
-                    sn.PhotoUrl)
-                )
-            );
-
+            
             return Results.Ok(response);
         }
     }
