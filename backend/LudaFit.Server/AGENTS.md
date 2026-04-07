@@ -22,6 +22,7 @@
 - **Rich Models (DDD):** Use private setters for entities. Instantiation MUST happen via static factory methods (e.g., Create()) returning Result<T>.
 - **VSA:** Endpoints MUST be defined as Minimal APIs using IEndpointRouteBuilder inside the static file.
 - **EF Core:** Use .AsNoTracking() for pure read operations in EF Core.
+- **Hashing:** Use Microsoft.AspNetCore.Identity.IPasswordHasher<T> for hashing passwords.
 
 ## Available Skills & Tools
 - **Unit Testing:** Use the `$unit-tests` skill for any testing tasks. Follow its internal xUnit/FluentAssertions rules.

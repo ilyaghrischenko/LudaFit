@@ -31,6 +31,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="Features\Admin\" />
       <Folder Include="Features\Booking\" />
       <Folder Include="Features\Discount\" />
       <Folder Include="Features\Page\" />

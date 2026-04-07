@@ -5,10 +5,12 @@ using System.Text;
 using FluentValidation;
 using LudaFit.Core.BackgroundServices;
 using LudaFit.Core.Settings;
+using LudaFit.Domain.Entities;
 using LudaFit.Infrastructure.Gmail;
 using LudaFit.Infrastructure.Gmail.Settings;
 using LudaFit.Infrastructure.SQLite;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -90,6 +92,8 @@ internal static class WebApplicationBuilderExtensions
     
     private static WebApplicationBuilder AddJwtBearer(this WebApplicationBuilder builder, string issuer, string audience, string key, string lifetime)
     {
+        builder.Services.AddSingleton<IPasswordHasher<Admin>, PasswordHasher<Admin>>();
+        
         builder.Services.Configure<JwtSettings>(options =>
         {
             options.Issuer = issuer;
@@ -123,7 +127,7 @@ internal static class WebApplicationBuilderExtensions
     
     private static WebApplicationBuilder AddFluentValidation(this WebApplicationBuilder builder)
     {
-        builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+        builder.Services.AddValidatorsFromAssemblyContaining<Program>(includeInternalTypes: true);
         
         return builder;
     }

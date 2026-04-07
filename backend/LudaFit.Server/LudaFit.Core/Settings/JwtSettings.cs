@@ -10,10 +10,9 @@ internal sealed record JwtSettings
     public required string Audience { get; set; }
     public required int Lifetime { get; set; }
     public required string Key { get; set; }
-    
-    public SymmetricSecurityKey GetSymmetricSecurityKey()
-    {
-        return new SymmetricSecurityKey(Encoding.ASCII.GetBytes(Key));
-    }
+
+    private SymmetricSecurityKey? _symmetricSecurityKey;
+    public SymmetricSecurityKey SymmetricSecurityKey =>
+        _symmetricSecurityKey ??= new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Key));
 }
 #pragma warning restore CA1812

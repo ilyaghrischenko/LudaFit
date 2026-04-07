@@ -28,15 +28,15 @@ internal static class DependencyInjectionExtensions
     {
         services.Scan(scan => scan
             .FromAssemblies(assembly)
-            .AddClasses(classes => classes.AssignableTo<IScopedType>())
+            .AddClasses(classes => classes.AssignableTo<IScopedType>(), publicOnly: false)
             .As(t => t.GetInterfaces().Except(markerInterfaces))
             .AsSelf()
             .WithScopedLifetime()
-            .AddClasses(classes => classes.AssignableTo<ITransientType>())
+            .AddClasses(classes => classes.AssignableTo<ITransientType>(), publicOnly: false)
             .As(t => t.GetInterfaces().Except(markerInterfaces))
             .AsSelf()
             .WithTransientLifetime()
-            .AddClasses(classes => classes.AssignableTo<ISingletonType>())
+            .AddClasses(classes => classes.AssignableTo<ISingletonType>(), publicOnly: false)
             .As(t => t.GetInterfaces().Except(markerInterfaces))
             .AsSelf()
             .WithSingletonLifetime()
