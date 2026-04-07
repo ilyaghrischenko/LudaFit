@@ -6,4 +6,13 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+      <PackageReference Include="MailKit" Version="4.15.1" />
+      <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.14" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\LudaFit.SharedKernel\LudaFit.SharedKernel.csproj" />
+    </ItemGroup>
+
 </Project>

@@ -1,9 +1,12 @@
 using System.Globalization;
+using System.Reflection;
 using System.Security.Authentication;
 using System.Text;
 using FluentValidation;
 using LudaFit.Core.BackgroundServices;
-using LudaFit.Core.Options;
+using LudaFit.Core.Settings;
+using LudaFit.Infrastructure.Gmail;
+using LudaFit.Infrastructure.Gmail.Settings;
 using LudaFit.Infrastructure.SQLite;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.ResponseCompression;
@@ -35,31 +38,51 @@ internal static class WebApplicationBuilderExtensions
             .AddCors()
             .AddFluentValidation();
         
-        //todo: scalar в качестве документации апи добавить
-        
         string tokenIssuer = builder.Configuration.GetOrThrow("TOKEN_ISSUER");
         string tokenAudience = builder.Configuration.GetOrThrow("TOKEN_AUDIENCE");
         string tokenKey = builder.Configuration.GetOrThrow("TOKEN_KEY");
         string tokenLifetime = builder.Configuration.GetOrThrow("TOKEN_LIFETIME");
-        
-        string email = builder.Configuration.GetOrThrow("SPECIALIST_EMAIL");
-        
-        builder
-            .AddJwtBearer(tokenIssuer, tokenAudience, tokenKey, tokenLifetime)
-            .AddMailKit(email);
 
-        builder.Services.AddTypesToDi();
+        builder.AddJwtBearer(tokenIssuer, tokenAudience, tokenKey, tokenLifetime);
+        
+        string organisationName = builder.Configuration.GetOrThrow("ORGANISATION_NAME");
+        string organisationEmail = builder.Configuration.GetOrThrow("ORGANISATION_EMAIL");
+        string specialistName = builder.Configuration.GetOrThrow("SPECIALIST_NAME");
+        string specialistEmail = builder.Configuration.GetOrThrow("SPECIALIST_EMAIL");
+        string smtpServer = builder.Configuration.GetOrThrow("SMTP_SERVER");
+#pragma warning disable CA1305
+        int port = int.Parse(builder.Configuration.GetOrThrow("SMTP_PORT"));
+#pragma warning restore CA1305
+        string password = builder.Configuration.GetOrThrow("SMTP_PASSWORD");
+
+        builder.AddMailKit(organisationName, organisationEmail, specialistName, specialistEmail, smtpServer, port, password);
+        
+        builder.Services.AddTypesToDi([Assembly.GetExecutingAssembly(), typeof(EmailSender).Assembly]);
 
         builder.Services.AddHostedService<DeleteExpiredDiscountsBackgroundService>();
 
         return builder;
     }
 
-    private static WebApplicationBuilder AddMailKit(this WebApplicationBuilder builder, string email)
+    private static WebApplicationBuilder AddMailKit(
+        this WebApplicationBuilder builder,
+        string organisationName,
+        string organisationEmail,
+        string specialistName,
+        string specialistEmail,
+        string smtpServer,
+        int port,
+        string password)
     {
-        builder.Services.Configure<EmailOptions>(options =>
+        builder.Services.Configure<EmailSettings>(options =>
         {
-            options.Email = email;
+            options.OrganisationName = organisationName;
+            options.OrganisationEmail = organisationEmail;
+            options.SpecialistName = specialistName;
+            options.SpecialistEmail = specialistEmail;
+            options.SmtpServer = smtpServer;
+            options.Port = port;
+            options.Password = password;
         });
         
         return builder;
@@ -67,7 +90,7 @@ internal static class WebApplicationBuilderExtensions
     
     private static WebApplicationBuilder AddJwtBearer(this WebApplicationBuilder builder, string issuer, string audience, string key, string lifetime)
     {
-        builder.Services.Configure<JwtOptions>(options =>
+        builder.Services.Configure<JwtSettings>(options =>
         {
             options.Issuer = issuer;
             options.Audience = audience;

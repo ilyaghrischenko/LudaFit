@@ -1,10 +1,10 @@
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 
-namespace LudaFit.Core.Options;
+namespace LudaFit.Core.Settings;
 
 #pragma warning disable CA1812
-internal sealed record JwtOptions
+internal sealed record JwtSettings
 {
     public required string Issuer { get; set; }
     public required string Audience { get; set; }
