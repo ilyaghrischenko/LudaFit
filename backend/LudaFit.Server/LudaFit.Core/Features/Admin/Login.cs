@@ -37,7 +37,7 @@ internal static class Login
                 .Produces<string>()
                 .ProducesValidationProblem()
                 .Produces(StatusCodes.Status401Unauthorized)
-                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .Produces(StatusCodes.Status400BadRequest)
                 .WithTags("Admin");
         }
 

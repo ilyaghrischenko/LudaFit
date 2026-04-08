@@ -23,6 +23,7 @@
 - **VSA:** Endpoints MUST be defined as Minimal APIs using IEndpointRouteBuilder inside the static file.
 - **EF Core:** Use .AsNoTracking() for pure read operations in EF Core.
 - **Hashing:** Use Microsoft.AspNetCore.Identity.IPasswordHasher<T> for hashing passwords.
+- **Validation:** FluentValidation is strictly for surface-level, stateless checks (e.g., NotEmpty, length, format). Deep business validation and invariants MUST be enforced inside the Rich Domain Entities.
 
 ## Available Skills & Tools
 - **Unit Testing:** Use the `$unit-tests` skill for any testing tasks. Follow its internal xUnit/FluentAssertions rules.
