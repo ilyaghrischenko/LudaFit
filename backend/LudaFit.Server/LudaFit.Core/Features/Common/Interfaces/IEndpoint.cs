@@ -1,4 +1,4 @@
-namespace LudaFit.Core.Features.Common.Endpoints;
+namespace LudaFit.Core.Features.Common.Interfaces;
 
 internal interface IEndpoint
 {

@@ -1,7 +1,7 @@
 using System.Net;
 using FluentValidation;
 using FluentValidation.Results;
-using LudaFit.Core.Features.Common.Endpoints;
+using LudaFit.Core.Features.Common.Interfaces;
 using LudaFit.Core.Services;
 using LudaFit.Domain.Entities;
 using LudaFit.Infrastructure.SQLite;

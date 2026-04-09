@@ -1,5 +1,5 @@
 using System.Reflection;
-using LudaFit.Core.Features.Common.Endpoints;
+using LudaFit.Core.Features.Common.Interfaces;
 using Scalar.AspNetCore;
 
 namespace LudaFit.Core.Extensions;

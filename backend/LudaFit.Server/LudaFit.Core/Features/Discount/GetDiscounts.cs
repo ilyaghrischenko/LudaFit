@@ -1,5 +1,5 @@
 using LudaFit.Core.Features.Common.Dto;
-using LudaFit.Core.Features.Common.Endpoints;
+using LudaFit.Core.Features.Common.Interfaces;
 using LudaFit.Core.Features.Common.Extensions;
 using LudaFit.Core.Features.Common.Parameters;
 using LudaFit.Infrastructure.SQLite;
