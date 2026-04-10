@@ -10,16 +10,19 @@ public sealed record ClientContacts
     public string PhoneNumber { get; init; } = null!;
 
     public MailAddress Email { get; init; } = null!;
-
+    
+    public string? TelegramTag { get; init; }
+    
     private ClientContacts() { }
 
-    private ClientContacts(string phoneNumber, MailAddress email)
+    private ClientContacts(string phoneNumber, MailAddress email, string? telegramTag)
     {
         PhoneNumber = phoneNumber;
         Email = email;
+        TelegramTag = telegramTag;
     }
 
-    public static Result<ClientContacts> Create(string phoneNumber, string email)
+    public static Result<ClientContacts> Create(string phoneNumber, string email, string? telegramTag = null)
     {
         string phoneNumberTrim = phoneNumber.Trim();
 
@@ -32,7 +35,22 @@ public sealed record ClientContacts
         {
             return new ErrorDetails("Пошта вказана не вірно");
         }
+
+        if (telegramTag is not null)
+        {
+            string telegramTagTrim = telegramTag.Trim();
+            
+            if (string.IsNullOrWhiteSpace(telegramTagTrim))
+            {
+                return new ErrorDetails("Тег телеграму не може бути пустий");
+            }
+
+            if (telegramTagTrim.First() != '@')
+            {
+                return new ErrorDetails("Тег телеграму повинен починатся з '@'");
+            }
+        }
         
-        return new ClientContacts(phoneNumberTrim, emailAddress);
+        return new ClientContacts(phoneNumberTrim, emailAddress, telegramTag);
     }
 }

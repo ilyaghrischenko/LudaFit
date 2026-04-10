@@ -70,6 +70,10 @@ public sealed class BookingEntityConfiguration : IEntityTypeConfiguration<Bookin
             clientContacts.Property(cc => cc.PhoneNumber)
                 .IsRequired()
                 .HasColumnName("ClientPhoneNumber");
+            
+            clientContacts.Property(cc => cc.TelegramTag)
+                .IsRequired(false)
+                .HasColumnName("ClientTelegramTag");
         });
         
         builder.OwnsOne<ClientAdditionalInformation>(booking => booking.ClientAdditionalInformation, clientAdditionalInformation =>
