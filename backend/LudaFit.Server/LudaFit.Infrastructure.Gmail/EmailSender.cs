@@ -1,4 +1,6 @@
+using System.Globalization;
 using System.Runtime.InteropServices.ComTypes;
+using System.Text;
 using LudaFit.Infrastructure.Gmail.Options;
 using LudaFit.Infrastructure.Gmail.Settings;
 using LudaFit.SharedKernel.Interfaces;
@@ -20,10 +22,9 @@ public sealed class EmailSender(IOptions<EmailSettings> options) : IScopedType
     {
         if (string.IsNullOrWhiteSpace(options.ClientName)
             || string.IsNullOrWhiteSpace(options.ClientEmail)
-            || string.IsNullOrWhiteSpace(options.ClientPhoneNumber)
-            || string.IsNullOrWhiteSpace(options.Message))
+            || string.IsNullOrWhiteSpace(options.ClientPhoneNumber))
         {
-            return new ErrorDetails("Пошта клієнта та тіло повідомлення не може бути пустим");
+            return new ErrorDetails("Ім'я або пошта або номер телефона клієнта не можуть бути пустими");
         }
         
         using MimeMessage mimeMessage = new();
@@ -33,20 +34,35 @@ public sealed class EmailSender(IOptions<EmailSettings> options) : IScopedType
         mimeMessage.ReplyTo.Add(new MailboxAddress(options.ClientName, options.ClientEmail));
 
         mimeMessage.Subject = $"Нова заявка з сайту від: {options.ClientName}";
+        
+        //todo: написать новую сущность в которую будут складываться не отправленные письма и фоновый обработчик будет их отправлять раз в пол дня
+        // + добавить чтобы тут нормально впихивались все остальные данные
 
-        var bodyHtml = $@"
+        StringBuilder stringBuilder = new($"""
             <h2>Нова заявка на запис</h2>
             <p><strong>Ім'я клієнта:</strong> {options.ClientName}</p>
             <p><strong>Email:</strong> {options.ClientEmail}</p>
             <p><strong>Телефон:</strong> {options.ClientPhoneNumber}</p>
-            <p><strong>Повідомлення:</strong> {options.Message}</p>
-        ";
+            {(options.ClientTelegramTag != null ? $"<p><strong>Telegram:</strong> {options.ClientTelegramTag}</p>" : string.Empty)}
+            
+            <p><strong>Назва послуги:</strong> {options.Booking.ServiceName}</p>
+            <p><strong>Ціна послуги:</strong> {options.Booking.ServicePrice}</p>
+            <p><strong>Вік:</strong> {options.Booking.Age}</p>
+            <p><strong>Зріст:</strong> {options.Booking.Height}</p>
+            <p><strong>Вага:</strong> {options.Booking.Weight}</p>
+            <p><strong>Обхват таліїі:</strong> {options.Booking.WaistSize}</p>
+            <p><strong>Ціль:</strong> {options.Booking.Purpose}</p>
+
+            
+        """);
+
+        var bodyHtml = BuildEmailMessage(stringBuilder, options.Booking);
 
         mimeMessage.Body = new TextPart("html")
         {
             Text = bodyHtml
         };
-
+        
         using var client = new SmtpClient();
 
         try
@@ -61,5 +77,110 @@ public sealed class EmailSender(IOptions<EmailSettings> options) : IScopedType
         }
         
         return Result.Success();
+    }
+
+    private static string BuildEmailMessage(StringBuilder stringBuilder, BookingOptions bookingOptions)
+    {
+        if (bookingOptions.PhysicalActivities != null && !string.IsNullOrWhiteSpace(bookingOptions.PhysicalActivities))
+        {
+            stringBuilder.AppendLine(
+                CultureInfo.InvariantCulture,
+                $"<p><strong>Фізична активність:</strong> {bookingOptions.PhysicalActivities}</p>"
+            );
+        }
+
+        if (bookingOptions.ClientAdditionalInformation != null)
+        {
+            if (bookingOptions.ClientAdditionalInformation.ClientHealth.FeelingUnwellComplaints != null)
+            {
+                stringBuilder.AppendLine(
+                    CultureInfo.InvariantCulture,
+                    $"<p><strong>Скарги на самопочуття:</strong> {bookingOptions.ClientAdditionalInformation.ClientHealth.FeelingUnwellComplaints}</p>"
+                );
+            }
+
+            if (bookingOptions.ClientAdditionalInformation.ClientHealth.Allergies != null)
+            {
+                stringBuilder.AppendLine(
+                    CultureInfo.InvariantCulture,
+                    $"<p><strong>Алергії:</strong> {bookingOptions.ClientAdditionalInformation.ClientHealth.Allergies}</p>"
+                );
+            }
+            
+            if (bookingOptions.ClientAdditionalInformation.ClientHealth.Intolerances != null)
+            {
+                stringBuilder.AppendLine(
+                    CultureInfo.InvariantCulture,
+                    $"<p><strong>Не переносимості їжі:</strong> {bookingOptions.ClientAdditionalInformation.ClientHealth.Intolerances}</p>"
+                );
+            }
+            
+            if (bookingOptions.ClientAdditionalInformation.ClientHealth.StressAndHowYouCopeWithIt != null)
+            {
+                stringBuilder.AppendLine(
+                    CultureInfo.InvariantCulture,
+                    $"<p><strong>Стресс та як ви справляєтся з ним:</strong> {bookingOptions.ClientAdditionalInformation.ClientHealth.StressAndHowYouCopeWithIt}</p>"
+                );
+            }
+
+            if (bookingOptions.ClientAdditionalInformation.ClientHealth.AnxietyTendency != null)
+            {
+                stringBuilder.AppendLine(
+                    CultureInfo.InvariantCulture,
+                    $"<p><strong>Чи є тривожність:</strong> {bookingOptions.ClientAdditionalInformation.ClientHealth.AnxietyTendency}</p>"
+                );
+            }
+
+            if (bookingOptions.ClientAdditionalInformation.ClientFoodPreferences.FavoriteFoods != null)
+            {
+                stringBuilder.AppendLine(
+                    CultureInfo.InvariantCulture,
+                    $"<p><strong>Улюблена їжа:</strong> {bookingOptions.ClientAdditionalInformation.ClientFoodPreferences.FavoriteFoods}</p>"
+                );
+            }
+            
+            if (bookingOptions.ClientAdditionalInformation.ClientFoodPreferences.UnfavoriteFoods != null)
+            {
+                stringBuilder.AppendLine(
+                    CultureInfo.InvariantCulture,
+                    $"<p><strong>Не улюблена їжа:</strong> {bookingOptions.ClientAdditionalInformation.ClientFoodPreferences.UnfavoriteFoods}</p>"
+                );
+            }
+
+            if (bookingOptions.ClientAdditionalInformation.FoodWeighing != null)
+            {
+                stringBuilder.AppendLine(
+                    CultureInfo.InvariantCulture,
+                    $"<p><strong>Чи зважуєте (або хочете зважувати) їжу:</strong> {bookingOptions.ClientAdditionalInformation.FoodWeighing}</p>"
+                );
+            }
+        }
+
+        if (bookingOptions.Diagnoses.Count == 0)
+        {
+            return stringBuilder.ToString();
+        }
+
+        stringBuilder.AppendLine("\n");
+        
+        foreach (DiagnosisOptions diagnosis in bookingOptions.Diagnoses)
+        {
+            stringBuilder.AppendLine(
+                CultureInfo.InvariantCulture,
+                $"<p><strong>Назва діагнозу:</strong> {diagnosis.Name}</p>"
+            );
+
+            foreach (MedicineOptions medicine in diagnosis.Medicines)
+            {
+                stringBuilder.AppendLine(
+                    CultureInfo.InvariantCulture,
+                    $"\t<p><strong>Назва ліків:</strong> {medicine.Name}</p>"
+                );
+            }
+
+            stringBuilder.AppendLine("\n");
+        }
+        
+        return stringBuilder.ToString();
     }
 }
