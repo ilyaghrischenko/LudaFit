@@ -24,23 +24,24 @@ internal sealed class SendEmailsBackgroundService(IServiceProvider serviceProvid
 
                 DateTime currentDateTime = timeProvider.GetUtcNow().UtcDateTime;
                 
-                List<EmailOutboxMessage> unsentEmails = await db.EmailOutboxMessages
-                    .Include(unsentEmail => unsentEmail.Booking)
-                    .Where(unsentEmail => unsentEmail.AttemptsCount < unsentEmail.MaxAttemptNumber && unsentEmail.NextAttemptAtUtc <= currentDateTime)
+                List<EmailOutboxMessage> emailsToSent = await db.EmailOutboxMessages
+                    .Include(emailToSent => emailToSent.Booking)
+                    .Where(emailToSent => emailToSent.AttemptsCount < emailToSent.MaxAttemptNumber
+                                          && emailToSent.NextAttemptAtUtc <= currentDateTime)
                     .ToListAsync(stoppingToken);
 
-                foreach (EmailOutboxMessage unsentEmail in unsentEmails)
+                foreach (EmailOutboxMessage emailToSent in emailsToSent)
                 {
-                    Result addAnotherTryResult = unsentEmail.AddAnotherTry();
+                    Result addAnotherTryResult = emailToSent.AddAnotherTry();
 
                     if (addAnotherTryResult.IsFailure)
                     {
-                        db.EmailOutboxMessages.Remove(unsentEmail);
+                        db.EmailOutboxMessages.Remove(emailToSent);
                         await db.SaveChangesAsync(stoppingToken);
                         continue;
                     }
 
-                    Booking booking = unsentEmail.Booking;
+                    Booking booking = emailToSent.Booking;
 
                     SendEmailOptions options = new(
                         booking.FullName,
@@ -58,15 +59,15 @@ internal sealed class SendEmailsBackgroundService(IServiceProvider serviceProvid
                         isSentSuccessfully = sendEmailResult.IsSuccess;
                     }
 #pragma warning disable CA1031
-                    catch (Exception)
+                    catch (Exception ex)
 #pragma warning restore CA1031
                     {
-                        // ignored
+                        Console.WriteLine(ex);
                     }
 
-                    if (isSentSuccessfully || unsentEmail.UsedAllAttempts)
+                    if (isSentSuccessfully || emailToSent.UsedAllAttempts)
                     {
-                        db.EmailOutboxMessages.Remove(unsentEmail);
+                        db.EmailOutboxMessages.Remove(emailToSent);
                     }
                     
                     await db.SaveChangesAsync(stoppingToken);
@@ -82,11 +83,11 @@ internal sealed class SendEmailsBackgroundService(IServiceProvider serviceProvid
             {
                 try
                 {
-                    await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
+                    await Task.Delay(TimeSpan.FromSeconds(20), stoppingToken);
                 }
-                catch (TaskCanceledException)
+                catch (TaskCanceledException ex)
                 {
-                    // ignored
+                    Console.WriteLine(ex);
                 }
             }
         }

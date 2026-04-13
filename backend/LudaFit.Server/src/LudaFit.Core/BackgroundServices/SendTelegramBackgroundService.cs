@@ -61,10 +61,10 @@ internal sealed class SendTelegramBackgroundService(IServiceProvider serviceProv
                         isSentSuccessfully = sendEmailResult.IsSuccess;
                     }
 #pragma warning disable CA1031
-                    catch (Exception)
+                    catch (Exception ex)
 #pragma warning restore CA1031
                     {
-                        // ignored
+                        Console.WriteLine(ex);
                     }
 
                     if (isSentSuccessfully || telegramMessage.UsedAllAttempts)
@@ -85,11 +85,11 @@ internal sealed class SendTelegramBackgroundService(IServiceProvider serviceProv
             {
                 try
                 {
-                    await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
+                    await Task.Delay(TimeSpan.FromSeconds(20), stoppingToken);
                 }
-                catch (TaskCanceledException)
+                catch (TaskCanceledException ex)
                 {
-                    // ignored
+                    Console.WriteLine(ex);
                 }
             }
         }
