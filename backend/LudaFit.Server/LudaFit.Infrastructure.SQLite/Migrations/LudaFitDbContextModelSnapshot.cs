@@ -174,7 +174,7 @@ namespace LudaFit.Infrastructure.SQLite.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("AttemptNumber")
+                    b.Property<int>("AttemptsCount")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("BookingId")
@@ -185,7 +185,7 @@ namespace LudaFit.Infrastructure.SQLite.Migrations
                         .HasColumnType("INTEGER")
                         .HasDefaultValue(5);
 
-                    b.Property<DateTime>("NextAttemptAt")
+                    b.Property<DateTime>("NextAttemptAtUtc")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -193,7 +193,7 @@ namespace LudaFit.Infrastructure.SQLite.Migrations
                     b.HasIndex("BookingId")
                         .IsUnique();
 
-                    b.HasIndex("AttemptNumber", "NextAttemptAt");
+                    b.HasIndex("AttemptsCount", "NextAttemptAtUtc");
 
                     b.ToTable("EmailOutboxMessages", (string)null);
                 });

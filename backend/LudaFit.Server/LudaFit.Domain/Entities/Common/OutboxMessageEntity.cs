@@ -3,6 +3,7 @@ using LudaFit.SharedKernel.Models;
 
 namespace LudaFit.Domain.Entities.Common;
 
+//todo: написать заметку про идемпотентность и аутбокс и внести туда эту сущность как пример хорошего базового класса
 public abstract class OutboxMessageEntity(DateTime currentDateTime) : BaseEntity
 {
     public int AttemptsCount { get; protected set; }
@@ -12,9 +13,6 @@ public abstract class OutboxMessageEntity(DateTime currentDateTime) : BaseEntity
     public bool UsedAllAttempts => AttemptsCount == MaxAttemptNumber;
 
     public DateTime NextAttemptAtUtc { get; protected set; } = currentDateTime;
-
-    private OutboxMessageEntity()
-        : this(default) { }
 
     public virtual Result AddAnotherTry()
     {

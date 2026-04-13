@@ -117,10 +117,10 @@ namespace LudaFit.Infrastructure.SQLite.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    AttemptNumber = table.Column<int>(type: "INTEGER", nullable: false),
+                    BookingId = table.Column<int>(type: "INTEGER", nullable: false),
+                    AttemptsCount = table.Column<int>(type: "INTEGER", nullable: false),
                     MaxAttemptNumber = table.Column<int>(type: "INTEGER", nullable: false, defaultValue: 5),
-                    NextAttemptAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    BookingId = table.Column<int>(type: "INTEGER", nullable: false)
+                    NextAttemptAtUtc = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -221,9 +221,9 @@ namespace LudaFit.Infrastructure.SQLite.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_EmailOutboxMessages_AttemptNumber_NextAttemptAt",
+                name: "IX_EmailOutboxMessages_AttemptsCount_NextAttemptAtUtc",
                 table: "EmailOutboxMessages",
-                columns: new[] { "AttemptNumber", "NextAttemptAt" });
+                columns: new[] { "AttemptsCount", "NextAttemptAtUtc" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_EmailOutboxMessages_BookingId",

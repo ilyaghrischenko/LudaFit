@@ -26,7 +26,7 @@ internal sealed class SendEmailsBackgroundService(IServiceProvider serviceProvid
                 
                 List<EmailOutboxMessage> unsentEmails = await db.EmailOutboxMessages
                     .Include(unsentEmail => unsentEmail.Booking)
-                    .Where(unsentEmail => unsentEmail.AttemptNumber < unsentEmail.MaxAttemptNumber && unsentEmail.NextAttemptAt <= currentDateTime)
+                    .Where(unsentEmail => unsentEmail.AttemptsCount < unsentEmail.MaxAttemptNumber && unsentEmail.NextAttemptAtUtc <= currentDateTime)
                     .ToListAsync(stoppingToken);
 
                 foreach (EmailOutboxMessage unsentEmail in unsentEmails)

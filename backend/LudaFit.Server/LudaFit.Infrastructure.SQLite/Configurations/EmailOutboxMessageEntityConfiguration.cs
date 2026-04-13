@@ -21,7 +21,7 @@ public sealed class EmailOutboxMessageEntityConfiguration : IEntityTypeConfigura
 
     private static void ConfigureBasicProperties(EntityTypeBuilder<EmailOutboxMessage> builder)
     {
-        builder.Property(email => email.AttemptNumber)
+        builder.Property(email => email.AttemptsCount)
             .IsRequired();
 
         builder.Property(email => email.MaxAttemptNumber)
@@ -30,7 +30,7 @@ public sealed class EmailOutboxMessageEntityConfiguration : IEntityTypeConfigura
         
         builder.Ignore(email => email.UsedAllAttempts);
 
-        builder.Property(email => email.NextAttemptAt)
+        builder.Property(email => email.NextAttemptAtUtc)
             .IsRequired();
     }
 
@@ -48,6 +48,6 @@ public sealed class EmailOutboxMessageEntityConfiguration : IEntityTypeConfigura
 
     private static void ConfigureIndexes(EntityTypeBuilder<EmailOutboxMessage> builder)
     {
-        builder.HasIndex(email => new { email.AttemptNumber, email.NextAttemptAt });
+        builder.HasIndex(email => new { email.AttemptsCount, email.NextAttemptAtUtc });
     }
 }
