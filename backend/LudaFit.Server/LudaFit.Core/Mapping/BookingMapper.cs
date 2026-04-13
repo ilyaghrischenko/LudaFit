@@ -5,7 +5,7 @@ namespace LudaFit.Core.Mapping;
 
 internal static class BookingMapper
 {
-    public static BookingOptions ToOptions(this Booking booking)
+    public static BookingOptions ToEmailOptions(this Booking booking)
         => new(
             booking.ServiceName,
             booking.ServicePrice,

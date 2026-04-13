@@ -62,6 +62,7 @@ internal static class WebApplicationBuilderExtensions
         builder.Services.AddTypesToDi([Assembly.GetExecutingAssembly(), typeof(EmailSender).Assembly]);
 
         builder.Services.AddHostedService<DeleteExpiredDiscountsBackgroundService>();
+        builder.Services.AddHostedService<SendUnsentEmailsBackgroundService>();
 
         return builder;
     }
@@ -175,14 +176,9 @@ internal static class WebApplicationBuilderExtensions
     
     private static WebApplicationBuilder AddDbContext(this WebApplicationBuilder builder)
     {
-        string? connectionString = builder.Configuration["DB_CONNECTION_STRING"];
-
-        if (string.IsNullOrEmpty(connectionString))
-        {
-            throw new InvalidCredentialException("DB_CONNECTION_STRING is not set");
-        }
+        string connectionString = builder.Configuration.GetOrThrow("DB_CONNECTION_STRING");
         
-        builder.Services.AddDbContext<LudaFitDbContext>(options =>
+        builder.Services.AddDbContextPool<LudaFitDbContext>(options =>
             options.UseSqlite(connectionString));
 
         return builder;

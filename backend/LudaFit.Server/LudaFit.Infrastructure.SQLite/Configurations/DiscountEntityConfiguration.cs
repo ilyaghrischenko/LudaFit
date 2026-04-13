@@ -46,7 +46,7 @@ public sealed class DiscountEntityConfiguration : IEntityTypeConfiguration<Disco
             .WithOne(service => service.Discount)
             .HasForeignKey(service => service.DiscountId)
             .OnDelete(DeleteBehavior.SetNull)
-            .IsRequired();
+            .IsRequired(false);
         
         builder.Ignore(discount => discount.Services);
         

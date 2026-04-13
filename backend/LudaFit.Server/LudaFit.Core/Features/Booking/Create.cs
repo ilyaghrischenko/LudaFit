@@ -249,7 +249,6 @@ internal static class Create
             Domain.Entities.Booking booking = createBookingResult.Value!;
 
             await db.Bookings.AddAsync(booking, cancellationToken);
-            await db.SaveChangesAsync(cancellationToken);
 
             SendEmailOptions sendEmailOptions = new(
                 booking.FullName,
@@ -266,9 +265,9 @@ internal static class Create
                 UnsentEmail unsentEmail = new(currentDateTime, booking);
 
                 await db.UnsentEmails.AddAsync(unsentEmail, cancellationToken);
-                await db.SaveChangesAsync(cancellationToken);
             }
             
+            await db.SaveChangesAsync(cancellationToken);
             return Result.Success();
         }
 

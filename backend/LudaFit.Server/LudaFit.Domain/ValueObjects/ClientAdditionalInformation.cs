@@ -14,7 +14,7 @@ public sealed record ClientAdditionalInformation
 
     private ClientAdditionalInformation() { }
 
-    private ClientAdditionalInformation(
+    public ClientAdditionalInformation(
         ClientHealth clientHealth,
         ClientFoodPreferences clientFoodPreferences,
         bool foodWeighing)

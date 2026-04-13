@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using LudaFit.Infrastructure.SQLite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LudaFit.Infrastructure.SQLite.Migrations
 {
     [DbContext(typeof(LudaFitDbContext))]
-    partial class LudaFitDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260411200554_AddUnsentEmailEntity")]
+    partial class AddUnsentEmailEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.14");
@@ -293,11 +296,6 @@ namespace LudaFit.Infrastructure.SQLite.Migrations
 
                     b.Property<int>("BookingId")
                         .HasColumnType("INTEGER");
-
-                    b.Property<int>("MaxAttemptNumber")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasDefaultValue(5);
 
                     b.Property<DateTime>("NextAttemptAt")
                         .HasColumnType("TEXT");

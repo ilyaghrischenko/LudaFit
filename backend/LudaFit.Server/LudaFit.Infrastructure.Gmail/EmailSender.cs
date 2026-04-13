@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Net;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using LudaFit.Infrastructure.Gmail.Options;
@@ -70,6 +71,15 @@ public sealed class EmailSender(IOptions<EmailSettings> options) : IScopedType
             await client.ConnectAsync(_settings.SmtpServer, _settings.Port, SecureSocketOptions.SslOnConnect, cancellationToken);
             await client.AuthenticateAsync(_settings.OrganisationEmail, _settings.Password, cancellationToken);
             await client.SendAsync(mimeMessage, cancellationToken);
+        }
+#pragma warning disable CA1031
+        catch
+#pragma warning restore CA1031
+        {
+            return Result.Failure(
+                "Не вдалося відправити листа на пошту",
+                HttpStatusCode.InternalServerError
+            );
         }
         finally
         {

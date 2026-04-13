@@ -15,20 +15,23 @@ internal sealed class DeleteExpiredDiscountsBackgroundService(IServiceProvider s
                 await using AsyncServiceScope scope = serviceProvider.CreateAsyncScope();
 
                 var db = scope.ServiceProvider.GetRequiredService<LudaFitDbContext>();
+                var timeProvider = scope.ServiceProvider.GetRequiredService<TimeProvider>();
 
-                DateOnly currentDate = DateOnly.FromDateTime(DateTime.UtcNow);
+                DateOnly currentDate = DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime);
 
                 await db.Discounts
                     .Where(discount => discount.DateRange.End < currentDate)
                     .ExecuteDeleteAsync(stoppingToken);
-
-                await Task.Delay(TimeSpan.FromDays(1), stoppingToken);
             }
 #pragma warning disable CA1031
             catch (Exception ex)
 #pragma warning restore CA1031
             {
                 Console.WriteLine(ex);
+            }
+            finally
+            {
+                await Task.Delay(TimeSpan.FromDays(1), stoppingToken);
             }
         }
     }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using LudaFit.Infrastructure.SQLite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LudaFit.Infrastructure.SQLite.Migrations
 {
     [DbContext(typeof(LudaFitDbContext))]
-    partial class LudaFitDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260413173427_AddPropertiesToUnsentEmailEntity")]
+    partial class AddPropertiesToUnsentEmailEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.14");
