@@ -1,14 +1,14 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="LudaFit.Core\LudaFit.Core.csproj" />
-    <Project Path="LudaFit.Domain/LudaFit.Domain.csproj" />
-    <Project Path="LudaFit.Infrastructure.AzureBlobStorage/LudaFit.Infrastructure.AzureBlobStorage.csproj" />
-    <Project Path="LudaFit.Infrastructure.Gmail/LudaFit.Infrastructure.Gmail.csproj" />
-    <Project Path="LudaFit.Infrastructure.SQLite\LudaFit.Infrastructure.SQLite.csproj" />
-    <Project Path="LudaFit.Infrastructure.Telegram/LudaFit.Infrastructure.Telegram.csproj" />
-    <Project Path="LudaFit.SharedKernel/LudaFit.SharedKernel.csproj" />
+    <Project Path="src\LudaFit.Core\LudaFit.Core.csproj" />
+    <Project Path="src\LudaFit.Domain/LudaFit.Domain.csproj" />
+    <Project Path="src\LudaFit.Infrastructure.AzureBlobStorage/LudaFit.Infrastructure.AzureBlobStorage.csproj" />
+    <Project Path="src\LudaFit.Infrastructure.Gmail/LudaFit.Infrastructure.Gmail.csproj" />
+    <Project Path="src\LudaFit.Infrastructure.SQLite\LudaFit.Infrastructure.SQLite.csproj" />
+    <Project Path="src\LudaFit.Infrastructure.Telegram/LudaFit.Infrastructure.Telegram.csproj" />
+    <Project Path="src\LudaFit.SharedKernel/LudaFit.SharedKernel.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="LudaFit.UnitTests\LudaFit.UnitTests.csproj" />
+    <Project Path="tests\LudaFit.UnitTests\LudaFit.UnitTests.csproj" />
   </Folder>
 </Solution>

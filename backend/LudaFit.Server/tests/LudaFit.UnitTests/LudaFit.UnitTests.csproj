@@ -20,6 +20,8 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\..\src\LudaFit.Domain\LudaFit.Domain.csproj" />
+        <ProjectReference Include="..\..\src\LudaFit.SharedKernel\LudaFit.SharedKernel.csproj" />
         <ProjectReference Include="..\LudaFit.Domain\LudaFit.Domain.csproj" />
     </ItemGroup>
 
