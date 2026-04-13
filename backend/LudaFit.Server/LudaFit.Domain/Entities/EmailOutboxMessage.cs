@@ -4,7 +4,7 @@ using LudaFit.SharedKernel.Models;
 
 namespace LudaFit.Domain.Entities;
 
-public sealed class UnsentEmail : BaseEntity
+public sealed class EmailOutboxMessage : BaseEntity
 {
     public int AttemptNumber { get; private set; }
 
@@ -17,11 +17,11 @@ public sealed class UnsentEmail : BaseEntity
     public Booking Booking { get; private set; } = null!;
     public int BookingId { get; private set; }
 
-    private UnsentEmail() { }
+    private EmailOutboxMessage() { }
 
-    public UnsentEmail(DateTime currentDateTime, Booking booking)
+    public EmailOutboxMessage(DateTime currentDateTime, Booking booking)
     {
-        NextAttemptAt = currentDateTime.AddMinutes(2);
+        NextAttemptAt = currentDateTime;
         Booking = booking;
         BookingId = booking.Id;
     }

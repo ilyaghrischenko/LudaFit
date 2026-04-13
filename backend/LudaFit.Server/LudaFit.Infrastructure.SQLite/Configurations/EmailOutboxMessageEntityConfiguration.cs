@@ -4,13 +4,13 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace LudaFit.Infrastructure.SQLite.Configurations;
 
-public sealed class UnsentEmailEntityConfiguration : IEntityTypeConfiguration<UnsentEmail>
+public sealed class EmailOutboxMessageEntityConfiguration : IEntityTypeConfiguration<EmailOutboxMessage>
 {
-    public void Configure(EntityTypeBuilder<UnsentEmail> builder)
+    public void Configure(EntityTypeBuilder<EmailOutboxMessage> builder)
     {
-        builder.ToTable("UnsentEmails");
+        builder.ToTable("EmailOutboxMessages");
         
-        builder.HasKey(unsentEmail => unsentEmail.Id);
+        builder.HasKey(email => email.Id);
 
         ConfigureBasicProperties(builder);
 
@@ -19,7 +19,7 @@ public sealed class UnsentEmailEntityConfiguration : IEntityTypeConfiguration<Un
         ConfigureIndexes(builder);
     }
 
-    private static void ConfigureBasicProperties(EntityTypeBuilder<UnsentEmail> builder)
+    private static void ConfigureBasicProperties(EntityTypeBuilder<EmailOutboxMessage> builder)
     {
         builder.Property(email => email.AttemptNumber)
             .IsRequired();
@@ -34,11 +34,11 @@ public sealed class UnsentEmailEntityConfiguration : IEntityTypeConfiguration<Un
             .IsRequired();
     }
 
-    private static void ConfigureBookingRelation(EntityTypeBuilder<UnsentEmail> builder)
+    private static void ConfigureBookingRelation(EntityTypeBuilder<EmailOutboxMessage> builder)
     {
         builder.HasOne<Booking>(email => email.Booking)
             .WithOne()
-            .HasForeignKey<UnsentEmail>(email => email.BookingId)
+            .HasForeignKey<EmailOutboxMessage>(email => email.BookingId)
             .OnDelete(DeleteBehavior.Cascade)
             .IsRequired();
         
@@ -46,7 +46,7 @@ public sealed class UnsentEmailEntityConfiguration : IEntityTypeConfiguration<Un
             .UsePropertyAccessMode(PropertyAccessMode.Property);
     }
 
-    private static void ConfigureIndexes(EntityTypeBuilder<UnsentEmail> builder)
+    private static void ConfigureIndexes(EntityTypeBuilder<EmailOutboxMessage> builder)
     {
         builder.HasIndex(email => new { email.AttemptNumber, email.NextAttemptAt });
     }

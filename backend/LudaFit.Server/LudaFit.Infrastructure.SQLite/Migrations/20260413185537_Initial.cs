@@ -31,6 +31,7 @@ namespace LudaFit.Infrastructure.SQLite.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
+                    IdempotencyKey = table.Column<Guid>(type: "TEXT", nullable: false),
                     ServiceName = table.Column<string>(type: "TEXT", nullable: false),
                     ServicePrice = table.Column<decimal>(type: "TEXT", nullable: false),
                     ServiceId = table.Column<int>(type: "INTEGER", nullable: false),
@@ -47,6 +48,7 @@ namespace LudaFit.Infrastructure.SQLite.Migrations
                     FoodWeighing = table.Column<bool>(type: "INTEGER", nullable: true),
                     ClientEmail = table.Column<string>(type: "TEXT", nullable: false),
                     ClientPhoneNumber = table.Column<string>(type: "TEXT", nullable: false),
+                    ClientTelegramTag = table.Column<string>(type: "TEXT", nullable: true),
                     ClientAge = table.Column<uint>(type: "INTEGER", nullable: false),
                     ClientHeight = table.Column<uint>(type: "INTEGER", nullable: false),
                     ClientWaistSize = table.Column<uint>(type: "INTEGER", nullable: false),
@@ -110,6 +112,28 @@ namespace LudaFit.Infrastructure.SQLite.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "EmailOutboxMessages",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    AttemptNumber = table.Column<int>(type: "INTEGER", nullable: false),
+                    MaxAttemptNumber = table.Column<int>(type: "INTEGER", nullable: false, defaultValue: 5),
+                    NextAttemptAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    BookingId = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EmailOutboxMessages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_EmailOutboxMessages_Bookings_BookingId",
+                        column: x => x.BookingId,
+                        principalTable: "Bookings",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Services",
                 columns: table => new
                 {
@@ -129,6 +153,28 @@ namespace LudaFit.Infrastructure.SQLite.Migrations
                         principalTable: "Discounts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SocialNetworks",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Name = table.Column<string>(type: "TEXT", nullable: false),
+                    Url = table.Column<string>(type: "TEXT", nullable: false),
+                    PhotoUrl = table.Column<string>(type: "TEXT", nullable: false),
+                    SpecialistId = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SocialNetworks", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SocialNetworks_Specialists_SpecialistId",
+                        column: x => x.SpecialistId,
+                        principalTable: "Specialists",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -158,6 +204,12 @@ namespace LudaFit.Infrastructure.SQLite.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Bookings_IdempotencyKey",
+                table: "Bookings",
+                column: "IdempotencyKey",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Diagnoses_BookingId",
                 table: "Diagnoses",
                 column: "BookingId");
@@ -166,6 +218,17 @@ namespace LudaFit.Infrastructure.SQLite.Migrations
                 name: "IX_Diagnoses_Name",
                 table: "Diagnoses",
                 column: "Name",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EmailOutboxMessages_AttemptNumber_NextAttemptAt",
+                table: "EmailOutboxMessages",
+                columns: new[] { "AttemptNumber", "NextAttemptAt" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EmailOutboxMessages_BookingId",
+                table: "EmailOutboxMessages",
+                column: "BookingId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -191,6 +254,11 @@ namespace LudaFit.Infrastructure.SQLite.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_SocialNetworks_SpecialistId",
+                table: "SocialNetworks",
+                column: "SpecialistId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Specialists_Name",
                 table: "Specialists",
                 column: "Name",
@@ -204,19 +272,25 @@ namespace LudaFit.Infrastructure.SQLite.Migrations
                 name: "Admins");
 
             migrationBuilder.DropTable(
+                name: "EmailOutboxMessages");
+
+            migrationBuilder.DropTable(
                 name: "Medicines");
 
             migrationBuilder.DropTable(
                 name: "Services");
 
             migrationBuilder.DropTable(
-                name: "Specialists");
+                name: "SocialNetworks");
 
             migrationBuilder.DropTable(
                 name: "Diagnoses");
 
             migrationBuilder.DropTable(
                 name: "Discounts");
+
+            migrationBuilder.DropTable(
+                name: "Specialists");
 
             migrationBuilder.DropTable(
                 name: "Bookings");

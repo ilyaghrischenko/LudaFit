@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LudaFit.Infrastructure.SQLite.Migrations
 {
     [DbContext(typeof(LudaFitDbContext))]
-    [Migration("20260405215148_AddSocialNetworkEntity")]
-    partial class AddSocialNetworkEntity
+    [Migration("20260413185537_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -53,6 +53,9 @@ namespace LudaFit.Infrastructure.SQLite.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<Guid>("IdempotencyKey")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("PhysicalActivities")
                         .HasColumnType("TEXT");
 
@@ -83,6 +86,10 @@ namespace LudaFit.Infrastructure.SQLite.Migrations
                                 .IsRequired()
                                 .HasColumnType("TEXT")
                                 .HasColumnName("ClientPhoneNumber");
+
+                            b1.Property<string>("TelegramTag")
+                                .HasColumnType("TEXT")
+                                .HasColumnName("ClientTelegramTag");
                         });
 
                     b.ComplexProperty<Dictionary<string, object>>("ClientMetrics", "LudaFit.Domain.Entities.Booking.ClientMetrics#ClientMetrics", b1 =>
@@ -107,6 +114,9 @@ namespace LudaFit.Infrastructure.SQLite.Migrations
                         });
 
                     b.HasKey("Id");
+
+                    b.HasIndex("IdempotencyKey")
+                        .IsUnique();
 
                     b.ToTable("Bookings", (string)null);
                 });
@@ -159,6 +169,36 @@ namespace LudaFit.Infrastructure.SQLite.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Discounts", (string)null);
+                });
+
+            modelBuilder.Entity("LudaFit.Domain.Entities.EmailOutboxMessage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AttemptNumber")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("BookingId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("MaxAttemptNumber")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(5);
+
+                    b.Property<DateTime>("NextAttemptAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookingId")
+                        .IsUnique();
+
+                    b.HasIndex("AttemptNumber", "NextAttemptAt");
+
+                    b.ToTable("EmailOutboxMessages", (string)null);
                 });
 
             modelBuilder.Entity("LudaFit.Domain.Entities.Medicine", b =>
@@ -368,6 +408,17 @@ namespace LudaFit.Infrastructure.SQLite.Migrations
                     b.HasOne("LudaFit.Domain.Entities.Booking", "Booking")
                         .WithMany("_diagnoses")
                         .HasForeignKey("BookingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Booking");
+                });
+
+            modelBuilder.Entity("LudaFit.Domain.Entities.EmailOutboxMessage", b =>
+                {
+                    b.HasOne("LudaFit.Domain.Entities.Booking", "Booking")
+                        .WithOne()
+                        .HasForeignKey("LudaFit.Domain.Entities.EmailOutboxMessage", "BookingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

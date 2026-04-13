@@ -62,7 +62,7 @@ internal static class WebApplicationBuilderExtensions
         builder.Services.AddTypesToDi([Assembly.GetExecutingAssembly(), typeof(EmailSender).Assembly]);
 
         builder.Services.AddHostedService<DeleteExpiredDiscountsBackgroundService>();
-        builder.Services.AddHostedService<SendUnsentEmailsBackgroundService>();
+        builder.Services.AddHostedService<SendEmailsBackgroundService>();
 
         return builder;
     }

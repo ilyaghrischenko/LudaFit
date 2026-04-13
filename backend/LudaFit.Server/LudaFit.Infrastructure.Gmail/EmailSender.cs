@@ -36,9 +36,6 @@ public sealed class EmailSender(IOptions<EmailSettings> options) : IScopedType
 
         mimeMessage.Subject = $"Нова заявка з сайту від: {options.ClientName}";
         
-        //todo: написать новую сущность в которую будут складываться не отправленные письма и фоновый обработчик будет их отправлять раз в пол дня
-        // + добавить чтобы тут нормально впихивались все остальные данные
-
         StringBuilder stringBuilder = new($"""
             <h2>Нова заявка на запис</h2>
             <p><strong>Ім'я клієнта:</strong> {options.ClientName}</p>

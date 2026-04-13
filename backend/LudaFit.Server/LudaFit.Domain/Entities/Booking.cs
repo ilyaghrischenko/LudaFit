@@ -7,6 +7,8 @@ namespace LudaFit.Domain.Entities;
 
 public sealed class Booking : BaseEntity
 {
+    public Guid IdempotencyKey { get; private set; }
+    
     public string ServiceName { get; private set; } = null!;
     public decimal ServicePrice { get; private set; }
     public int ServiceId { get; init; }
@@ -29,6 +31,7 @@ public sealed class Booking : BaseEntity
     private Booking() { }
 
     private Booking(
+        Guid idempotencyKey,
         string serviceName,
         decimal servicePrice,
         int serviceId,
@@ -39,6 +42,7 @@ public sealed class Booking : BaseEntity
         ClientContacts clientContacts,
         string? physicalActivities = null)
     {
+        IdempotencyKey = idempotencyKey;
         ServiceName = serviceName;
         ServicePrice = servicePrice;
         ServiceId = serviceId;
@@ -51,6 +55,7 @@ public sealed class Booking : BaseEntity
     }
 
     public static Result<Booking> Create(
+        Guid idempotencyKey,
         string serviceName,
         decimal servicePrice,
         int serviceId,
@@ -62,6 +67,11 @@ public sealed class Booking : BaseEntity
         CreateDiagnosisForBooking[]? diagnosesForBooking = null,
         ClientAdditionalInformation? clientAdditionalInformation = null)
     {
+        if (idempotencyKey == Guid.Empty)
+        {
+            return new ErrorDetails("Не вірний формат ключа");
+        }
+        
         if (string.IsNullOrWhiteSpace(serviceName))
         {
             return new ErrorDetails("Назва послуги не може бути пустою");
@@ -93,6 +103,7 @@ public sealed class Booking : BaseEntity
         }
 
         Booking booking = new(
+            idempotencyKey,
             serviceName,
             servicePrice,
             serviceId,

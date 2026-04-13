@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LudaFit.Core.BackgroundServices;
 
-internal sealed class SendUnsentEmailsBackgroundService(IServiceProvider serviceProvider) : BackgroundService
+internal sealed class SendEmailsBackgroundService(IServiceProvider serviceProvider) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -24,18 +24,18 @@ internal sealed class SendUnsentEmailsBackgroundService(IServiceProvider service
 
                 DateTime currentDateTime = timeProvider.GetUtcNow().UtcDateTime;
                 
-                List<UnsentEmail> unsentEmails = await db.UnsentEmails
+                List<EmailOutboxMessage> unsentEmails = await db.EmailOutboxMessages
                     .Include(unsentEmail => unsentEmail.Booking)
                     .Where(unsentEmail => unsentEmail.AttemptNumber < unsentEmail.MaxAttemptNumber && unsentEmail.NextAttemptAt <= currentDateTime)
                     .ToListAsync(stoppingToken);
 
-                foreach (UnsentEmail unsentEmail in unsentEmails)
+                foreach (EmailOutboxMessage unsentEmail in unsentEmails)
                 {
                     Result addAnotherTryResult = unsentEmail.AddAnotherTry();
 
                     if (addAnotherTryResult.IsFailure)
                     {
-                        db.UnsentEmails.Remove(unsentEmail);
+                        db.EmailOutboxMessages.Remove(unsentEmail);
                         await db.SaveChangesAsync(stoppingToken);
                         continue;
                     }
@@ -66,7 +66,7 @@ internal sealed class SendUnsentEmailsBackgroundService(IServiceProvider service
 
                     if (isSentSuccessfully || unsentEmail.UsedAllAttempts)
                     {
-                        db.UnsentEmails.Remove(unsentEmail);
+                        db.EmailOutboxMessages.Remove(unsentEmail);
                     }
                     
                     await db.SaveChangesAsync(stoppingToken);

@@ -12,12 +12,14 @@ using LudaFit.SharedKernel.Interfaces;
 using LudaFit.SharedKernel.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace LudaFit.Core.Features.Booking;
 
 internal static class Create
 {
     internal sealed record Request(
+        Guid IdempotencyKey,
         int ServiceId,
         string FullName,
         ClientMetricsRequest ClientMetrics,
@@ -175,11 +177,19 @@ internal static class Create
 
     internal sealed class Handler(
         LudaFitDbContext db,
-        EmailSender emailSender,
         TimeProvider timeProvider) : IScopedType
     {
         public async Task<Result> HandleAsync(Request request, CancellationToken cancellationToken)
         {
+            bool isIdempotencyKeyUsed = await db.Bookings
+                .AsNoTracking()
+                .AnyAsync(email => email.IdempotencyKey == request.IdempotencyKey, cancellationToken);
+
+            if (isIdempotencyKeyUsed)
+            {
+                return Result.Success();
+            }
+            
             DateTime currentDateTime = timeProvider.GetUtcNow().UtcDateTime;
 
             Domain.Entities.Service? service = await db.Services
@@ -227,8 +237,9 @@ internal static class Create
             }
 
             CreateDiagnosisForBooking[]? diagnoses = MapDiagnoses(request.Diagnoses);
-
+            
             Result<Domain.Entities.Booking> createBookingResult = Domain.Entities.Booking.Create(
+                request.IdempotencyKey,
                 service.Name,
                 service.GetFinalPrice(DateOnly.FromDateTime(currentDateTime)),
                 service.Id,
@@ -247,27 +258,16 @@ internal static class Create
             }
 
             Domain.Entities.Booking booking = createBookingResult.Value!;
+            EmailOutboxMessage emailOutboxMessage = new(currentDateTime, booking);
 
+            await using IDbContextTransaction transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+            
             await db.Bookings.AddAsync(booking, cancellationToken);
-
-            SendEmailOptions sendEmailOptions = new(
-                booking.FullName,
-                booking.ClientContacts.Email.Address,
-                booking.ClientContacts.PhoneNumber,
-                booking.ClientContacts.TelegramTag,
-                booking.ToEmailOptions()
-            );
-
-            Result sendEmailResult = await emailSender.SendAsync(sendEmailOptions, cancellationToken);
-
-            if (sendEmailResult.IsFailure)
-            {
-                UnsentEmail unsentEmail = new(currentDateTime, booking);
-
-                await db.UnsentEmails.AddAsync(unsentEmail, cancellationToken);
-            }
+            await db.EmailOutboxMessages.AddAsync(emailOutboxMessage, cancellationToken);
             
             await db.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+            
             return Result.Success();
         }
 

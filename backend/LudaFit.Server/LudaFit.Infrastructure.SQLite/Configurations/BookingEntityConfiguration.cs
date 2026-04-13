@@ -19,10 +19,15 @@ public sealed class BookingEntityConfiguration : IEntityTypeConfiguration<Bookin
         ConfigureValueObjects(builder);
         
         ConfigureDiagnosisRelation(builder);
+        
+        ConfigureIndexes(builder);
     }
 
     private static void ConfigureBasicProperties(EntityTypeBuilder<Booking> builder)
     {
+        builder.Property(booking => booking.IdempotencyKey)
+            .IsRequired();
+        
         builder.Property(booking => booking.ServiceName)
             .IsRequired();
         
@@ -124,5 +129,11 @@ public sealed class BookingEntityConfiguration : IEntityTypeConfiguration<Bookin
         
         builder.Navigation("_diagnoses")
             .UsePropertyAccessMode(PropertyAccessMode.Field);
+    }
+
+    private static void ConfigureIndexes(EntityTypeBuilder<Booking> builder)
+    {
+        builder.HasIndex(booking => booking.IdempotencyKey)
+            .IsUnique();
     }
 }
