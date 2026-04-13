@@ -264,8 +264,8 @@ internal static class Create
             
             await db.Bookings.AddAsync(booking, cancellationToken);
             await db.EmailOutboxMessages.AddAsync(emailOutboxMessage, cancellationToken);
-            
             await db.SaveChangesAsync(cancellationToken);
+            
             await transaction.CommitAsync(cancellationToken);
             
             return Result.Success();
