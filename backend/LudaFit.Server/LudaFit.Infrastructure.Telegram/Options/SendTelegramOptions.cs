@@ -1,8 +1,8 @@
 using LudaFit.SharedKernel.Options;
 
-namespace LudaFit.Infrastructure.Gmail.Options;
+namespace LudaFit.Infrastructure.Telegram.Options;
 
-public sealed record SendEmailOptions(
+public sealed record SendTelegramOptions(
     string ClientName,
     string ClientEmail,
     string ClientPhoneNumber,

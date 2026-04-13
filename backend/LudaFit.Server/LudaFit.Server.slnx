@@ -5,6 +5,7 @@
     <Project Path="LudaFit.Infrastructure.AzureBlobStorage/LudaFit.Infrastructure.AzureBlobStorage.csproj" />
     <Project Path="LudaFit.Infrastructure.Gmail/LudaFit.Infrastructure.Gmail.csproj" />
     <Project Path="LudaFit.Infrastructure.SQLite\LudaFit.Infrastructure.SQLite.csproj" />
+    <Project Path="LudaFit.Infrastructure.Telegram/LudaFit.Infrastructure.Telegram.csproj" />
     <Project Path="LudaFit.SharedKernel/LudaFit.SharedKernel.csproj" />
   </Folder>
   <Folder Name="/tests/">

@@ -19,6 +19,7 @@ public sealed class LudaFitDbContext : DbContext
     public DbSet<SocialNetwork> SocialNetworks { get; set; }
     public DbSet<Specialist> Specialists { get; set; }
     public DbSet<EmailOutboxMessage> EmailOutboxMessages { get; set; }
+    public DbSet<TelegramOutboxMessage> TelegramOutboxMessages { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

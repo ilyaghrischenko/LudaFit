@@ -134,6 +134,28 @@ namespace LudaFit.Infrastructure.SQLite.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "TelegramOutboxMessages",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    BookingId = table.Column<int>(type: "INTEGER", nullable: false),
+                    AttemptsCount = table.Column<int>(type: "INTEGER", nullable: false),
+                    MaxAttemptNumber = table.Column<int>(type: "INTEGER", nullable: false, defaultValue: 5),
+                    NextAttemptAtUtc = table.Column<DateTime>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TelegramOutboxMessages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_TelegramOutboxMessages_Bookings_BookingId",
+                        column: x => x.BookingId,
+                        principalTable: "Bookings",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Services",
                 columns: table => new
                 {
@@ -263,6 +285,17 @@ namespace LudaFit.Infrastructure.SQLite.Migrations
                 table: "Specialists",
                 column: "Name",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TelegramOutboxMessages_AttemptsCount_NextAttemptAtUtc",
+                table: "TelegramOutboxMessages",
+                columns: new[] { "AttemptsCount", "NextAttemptAtUtc" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TelegramOutboxMessages_BookingId",
+                table: "TelegramOutboxMessages",
+                column: "BookingId",
+                unique: true);
         }
 
         /// <inheritdoc />
@@ -282,6 +315,9 @@ namespace LudaFit.Infrastructure.SQLite.Migrations
 
             migrationBuilder.DropTable(
                 name: "SocialNetworks");
+
+            migrationBuilder.DropTable(
+                name: "TelegramOutboxMessages");
 
             migrationBuilder.DropTable(
                 name: "Diagnoses");

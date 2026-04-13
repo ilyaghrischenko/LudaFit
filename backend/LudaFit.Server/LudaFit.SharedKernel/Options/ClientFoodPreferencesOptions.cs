@@ -1,3 +1,3 @@
-namespace LudaFit.Infrastructure.Gmail.Options;
+namespace LudaFit.SharedKernel.Options;
 
 public sealed record ClientFoodPreferencesOptions(string? FavoriteFoods, string? UnfavoriteFoods);

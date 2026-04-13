@@ -259,11 +259,13 @@ internal static class Create
 
             Domain.Entities.Booking booking = createBookingResult.Value!;
             EmailOutboxMessage emailOutboxMessage = new(currentDateTime, booking);
+            TelegramOutboxMessage telegramOutboxMessage = new(currentDateTime, booking);
 
             await using IDbContextTransaction transaction = await db.Database.BeginTransactionAsync(cancellationToken);
             
             await db.Bookings.AddAsync(booking, cancellationToken);
             await db.EmailOutboxMessages.AddAsync(emailOutboxMessage, cancellationToken);
+            await db.TelegramOutboxMessages.AddAsync(telegramOutboxMessage, cancellationToken);
             await db.SaveChangesAsync(cancellationToken);
             
             await transaction.CommitAsync(cancellationToken);

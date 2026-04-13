@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LudaFit.Infrastructure.SQLite.Migrations
 {
     [DbContext(typeof(LudaFitDbContext))]
-    [Migration("20260413192454_Initial")]
+    [Migration("20260413205828_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -321,6 +321,36 @@ namespace LudaFit.Infrastructure.SQLite.Migrations
                     b.ToTable("Specialists", (string)null);
                 });
 
+            modelBuilder.Entity("LudaFit.Domain.Entities.TelegramOutboxMessage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AttemptsCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("BookingId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("MaxAttemptNumber")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(5);
+
+                    b.Property<DateTime>("NextAttemptAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookingId")
+                        .IsUnique();
+
+                    b.HasIndex("AttemptsCount", "NextAttemptAtUtc");
+
+                    b.ToTable("TelegramOutboxMessages", (string)null);
+                });
+
             modelBuilder.Entity("LudaFit.Domain.Entities.Booking", b =>
                 {
                     b.OwnsOne("LudaFit.Domain.ValueObjects.ClientAdditionalInformation", "ClientAdditionalInformation", b1 =>
@@ -455,6 +485,17 @@ namespace LudaFit.Infrastructure.SQLite.Migrations
                         .IsRequired();
 
                     b.Navigation("Specialist");
+                });
+
+            modelBuilder.Entity("LudaFit.Domain.Entities.TelegramOutboxMessage", b =>
+                {
+                    b.HasOne("LudaFit.Domain.Entities.Booking", "Booking")
+                        .WithOne()
+                        .HasForeignKey("LudaFit.Domain.Entities.TelegramOutboxMessage", "BookingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Booking");
                 });
 
             modelBuilder.Entity("LudaFit.Domain.Entities.Booking", b =>

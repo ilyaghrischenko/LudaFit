@@ -27,6 +27,7 @@
       <ProjectReference Include="..\LudaFit.Infrastructure.AzureBlobStorage\LudaFit.Infrastructure.AzureBlobStorage.csproj" />
       <ProjectReference Include="..\LudaFit.Infrastructure.Gmail\LudaFit.Infrastructure.Gmail.csproj" />
       <ProjectReference Include="..\LudaFit.Infrastructure.SQLite\LudaFit.Infrastructure.SQLite.csproj" />
+      <ProjectReference Include="..\LudaFit.Infrastructure.Telegram\LudaFit.Infrastructure.Telegram.csproj" />
       <ProjectReference Include="..\LudaFit.SharedKernel\LudaFit.SharedKernel.csproj" />
     </ItemGroup>
 

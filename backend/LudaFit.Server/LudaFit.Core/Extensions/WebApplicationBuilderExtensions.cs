@@ -9,11 +9,14 @@ using LudaFit.Domain.Entities;
 using LudaFit.Infrastructure.Gmail;
 using LudaFit.Infrastructure.Gmail.Settings;
 using LudaFit.Infrastructure.SQLite;
+using LudaFit.Infrastructure.Telegram;
+using LudaFit.Infrastructure.Telegram.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Telegram.Bot;
 
 namespace LudaFit.Core.Extensions;
 
@@ -54,16 +57,39 @@ internal static class WebApplicationBuilderExtensions
         string smtpServer = builder.Configuration.GetOrThrow("SMTP_SERVER");
 #pragma warning disable CA1305
         int port = int.Parse(builder.Configuration.GetOrThrow("SMTP_PORT"));
-#pragma warning restore CA1305
         string password = builder.Configuration.GetOrThrow("SMTP_PASSWORD");
 
         builder.AddMailKit(organisationName, organisationEmail, specialistName, specialistEmail, smtpServer, port, password);
+
+        string token = builder.Configuration.GetOrThrow("TELEGRAM_TOKEN");
+        long chatId = long.Parse(builder.Configuration.GetOrThrow("TELEGRAM_CHAT_ID"));
+#pragma warning restore CA1305
         
-        builder.Services.AddTypesToDi([Assembly.GetExecutingAssembly(), typeof(EmailSender).Assembly]);
+        builder.AddTelegramBot(token, chatId);
+        
+        builder.Services.AddTypesToDi([Assembly.GetExecutingAssembly(), typeof(EmailSender).Assembly, typeof(TelegramSender).Assembly]);
 
         builder.Services.AddHostedService<DeleteExpiredDiscountsBackgroundService>();
         builder.Services.AddHostedService<SendEmailsBackgroundService>();
+        builder.Services.AddHostedService<SendTelegramBackgroundService>();
 
+        return builder;
+    }
+
+    private static WebApplicationBuilder AddTelegramBot(
+        this WebApplicationBuilder builder,
+        string token,
+        long chatId)
+    {
+        TelegramBotClient telegramBotClient = new(token);
+        builder.Services.AddSingleton<ITelegramBotClient>(telegramBotClient);
+        
+        builder.Services.Configure<TelegramSettings>(settings =>
+        {
+            settings.Token = token;
+            settings.ChatId = chatId;
+        });
+        
         return builder;
     }
 
@@ -77,15 +103,15 @@ internal static class WebApplicationBuilderExtensions
         int port,
         string password)
     {
-        builder.Services.Configure<EmailSettings>(options =>
+        builder.Services.Configure<EmailSettings>(settings =>
         {
-            options.OrganisationName = organisationName;
-            options.OrganisationEmail = organisationEmail;
-            options.SpecialistName = specialistName;
-            options.SpecialistEmail = specialistEmail;
-            options.SmtpServer = smtpServer;
-            options.Port = port;
-            options.Password = password;
+            settings.OrganisationName = organisationName;
+            settings.OrganisationEmail = organisationEmail;
+            settings.SpecialistName = specialistName;
+            settings.SpecialistEmail = specialistEmail;
+            settings.SmtpServer = smtpServer;
+            settings.Port = port;
+            settings.Password = password;
         });
         
         return builder;

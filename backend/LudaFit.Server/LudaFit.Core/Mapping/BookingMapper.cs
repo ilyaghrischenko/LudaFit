@@ -1,5 +1,6 @@
 using LudaFit.Domain.Entities;
 using LudaFit.Infrastructure.Gmail.Options;
+using LudaFit.SharedKernel.Options;
 
 namespace LudaFit.Core.Mapping;
 

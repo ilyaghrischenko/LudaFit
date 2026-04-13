@@ -6,6 +6,7 @@ using LudaFit.Infrastructure.Gmail.Options;
 using LudaFit.Infrastructure.Gmail.Settings;
 using LudaFit.SharedKernel.Interfaces;
 using LudaFit.SharedKernel.Models;
+using LudaFit.SharedKernel.Options;
 using MailKit;
 using MailKit.Net.Smtp;
 using MailKit.Security;
@@ -54,7 +55,7 @@ public sealed class EmailSender(IOptions<EmailSettings> options) : IScopedType
             
         """);
 
-        var bodyHtml = BuildEmailMessage(stringBuilder, options.Booking);
+        string bodyHtml = BuildEmailMessage(stringBuilder, options.Booking);
 
         mimeMessage.Body = new TextPart("html")
         {

@@ -11,6 +11,7 @@
 - **FluentValidation**.
 - **xUnit + FluentAssertions**.
 - **MailKit**.
+- **Telegram.Bot**.
 - **Azure Blob Storage**.
 - **Scalar for API documentation**.
 
