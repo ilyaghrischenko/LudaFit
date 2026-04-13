@@ -10,6 +10,8 @@ internal sealed class DeleteExpiredDiscountsBackgroundService(IServiceProvider s
     {
         while (!stoppingToken.IsCancellationRequested)
         {
+            TimeSpan timeUntilMidnight = TimeSpan.FromDays(1);
+            
             try
             {
                 await using AsyncServiceScope scope = serviceProvider.CreateAsyncScope();
@@ -17,7 +19,11 @@ internal sealed class DeleteExpiredDiscountsBackgroundService(IServiceProvider s
                 var db = scope.ServiceProvider.GetRequiredService<LudaFitDbContext>();
                 var timeProvider = scope.ServiceProvider.GetRequiredService<TimeProvider>();
 
-                DateOnly currentDate = DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime);
+                DateTime now = timeProvider.GetUtcNow().UtcDateTime;
+                DateTime nextMidnight = now.Date.AddDays(1);
+                DateOnly currentDate = DateOnly.FromDateTime(now);
+                
+                timeUntilMidnight = nextMidnight - now;
 
                 await db.Discounts
                     .Where(discount => discount.DateRange.End < currentDate)
@@ -31,7 +37,14 @@ internal sealed class DeleteExpiredDiscountsBackgroundService(IServiceProvider s
             }
             finally
             {
-                await Task.Delay(TimeSpan.FromDays(1), stoppingToken);
+                try
+                {
+                    await Task.Delay(timeUntilMidnight, stoppingToken);
+                }
+                catch (TaskCanceledException)
+                {
+                    // ignored
+                }
             }
         }
     }
