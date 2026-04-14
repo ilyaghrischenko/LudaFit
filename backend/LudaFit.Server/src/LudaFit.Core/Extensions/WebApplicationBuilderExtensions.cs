@@ -2,10 +2,12 @@ using System.Globalization;
 using System.Reflection;
 using System.Security.Authentication;
 using System.Text;
+using Azure.Storage.Blobs;
 using FluentValidation;
 using LudaFit.Core.BackgroundServices;
 using LudaFit.Core.Settings;
 using LudaFit.Domain.Entities;
+using LudaFit.Infrastructure.AzureBlobStorage;
 using LudaFit.Infrastructure.Gmail;
 using LudaFit.Infrastructure.Gmail.Settings;
 using LudaFit.Infrastructure.SQLite;
@@ -67,7 +69,7 @@ internal static class WebApplicationBuilderExtensions
         
         builder.AddTelegramBot(token, chatId);
         
-        builder.Services.AddTypesToDi([Assembly.GetExecutingAssembly(), typeof(EmailSender).Assembly, typeof(TelegramSender).Assembly]);
+        builder.Services.AddTypesToDi();
 
         builder.Services.AddHostedService<DeleteExpiredDiscountsBackgroundService>();
         builder.Services.AddHostedService<SendEmailsBackgroundService>();
@@ -156,6 +158,16 @@ internal static class WebApplicationBuilderExtensions
     {
         builder.Services.AddValidatorsFromAssemblyContaining<Program>(includeInternalTypes: true);
         
+        return builder;
+    }
+
+    private static WebApplicationBuilder AddAzureBlob(this WebApplicationBuilder builder)
+    {
+        string azureBlobConnectionString = builder.Configuration.GetOrThrow("AZURE_BLOB_CONNECTION_STRING");
+        BlobServiceClient blobServiceClient = new(azureBlobConnectionString);
+        
+        builder.Services.AddSingleton(blobServiceClient);
+
         return builder;
     }
     

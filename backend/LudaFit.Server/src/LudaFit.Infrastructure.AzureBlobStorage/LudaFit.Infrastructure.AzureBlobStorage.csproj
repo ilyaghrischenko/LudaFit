@@ -6,4 +6,13 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Azure.Storage.Blobs" Version="12.27.0" />
+      <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.14" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\LudaFit.SharedKernel\LudaFit.SharedKernel.csproj" />
+    </ItemGroup>
+
 </Project>

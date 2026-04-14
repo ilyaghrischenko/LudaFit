@@ -3,31 +3,15 @@ using LudaFit.SharedKernel.Interfaces;
 
 namespace LudaFit.Core.Extensions;
 
+//todo: обновить заметку про скрутор
 internal static class DependencyInjectionExtensions
 {
-    public static IServiceCollection AddTypesToDi(this IServiceCollection services, Assembly[]? assembliesToScan = null)
+    public static IServiceCollection AddTypesToDi(this IServiceCollection services)
     {
         Type[] markerInterfaces = [typeof(IScopedType), typeof(ITransientType), typeof(ISingletonType)];
         
-        if (assembliesToScan is null || assembliesToScan.Length == 0)
-        {
-            services.ScanAssembly(Assembly.GetExecutingAssembly(), markerInterfaces);
-        }
-        else
-        {
-            foreach (Assembly assembly in assembliesToScan)
-            {
-                services.ScanAssembly(assembly, markerInterfaces);
-            }
-        }
-        
-        return services;
-    }
-
-    private static void ScanAssembly(this IServiceCollection services, Assembly assembly, Type[] markerInterfaces)
-    {
         services.Scan(scan => scan
-            .FromAssemblies(assembly)
+            .FromApplicationDependencies(assembly => assembly.FullName != null && assembly.FullName.StartsWith("LudaFit.", StringComparison.Ordinal))
             .AddClasses(classes => classes.AssignableTo<IScopedType>(), publicOnly: false)
             .As(t => t.GetInterfaces().Except(markerInterfaces))
             .AsSelf()
@@ -41,5 +25,7 @@ internal static class DependencyInjectionExtensions
             .AsSelf()
             .WithSingletonLifetime()
         );
+        
+        return services;
     }
 }
