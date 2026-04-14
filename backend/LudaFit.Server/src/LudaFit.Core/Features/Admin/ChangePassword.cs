@@ -132,7 +132,7 @@ internal static class ChangePassword
 
             string newPasswordHash = passwordHasher.HashPassword(admin, request.NewPassword);
 
-            Result changePasswordResult = admin.ChangePassword(admin.PasswordHash, newPasswordHash);
+            Result changePasswordResult = admin.ChangePassword(admin.PasswordHash, request.NewPassword, newPasswordHash);
 
             if (changePasswordResult.IsFailure)
             {

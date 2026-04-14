@@ -18,7 +18,7 @@ public sealed class Admin : BaseEntity
         PasswordHash = passwordHash;
     }
 
-    public static Result<Admin> Create(string login, string passwordHash)
+    public static Result<Admin> Create(string login, string password, string passwordHash)
     {
         Result validationResult = LoginRules.IsValid(login);
 
@@ -27,8 +27,7 @@ public sealed class Admin : BaseEntity
             return new ErrorDetails(validationResult.ErrorDetails!.ErrorMessage);
         }
 
-        //todo: может быть проблема так как это хэш а не сам пароль, может не пройти по требованиям
-        validationResult = PasswordRules.IsValid(passwordHash);
+        validationResult = PasswordRules.IsValid(password);
 
         if (validationResult.IsFailure)
         {
@@ -59,15 +58,14 @@ public sealed class Admin : BaseEntity
         return Result.Success();
     }
 
-    public Result ChangePassword(string oldPasswordHash, string newPasswordHash)
+    public Result ChangePassword(string oldPasswordHash, string newPassword, string newPasswordHash)
     {
         if (oldPasswordHash == newPasswordHash)
         {
             return new ErrorDetails("Новий пароль має відрізнятися");
         }
         
-        //todo: может быть проблема так как это хэш а не сам пароль, может не пройти по требованиям
-        Result validationResult = PasswordRules.IsValid(newPasswordHash);
+        Result validationResult = PasswordRules.IsValid(newPassword);
 
         if (validationResult.IsFailure)
         {

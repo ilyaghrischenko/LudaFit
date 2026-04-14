@@ -7,14 +7,15 @@ namespace LudaFit.UnitTests.Domain.Entities;
 public sealed class AdminTests
 {
     [Fact]
-    public void Create_ShouldReturnSuccess_WhenLoginAndPasswordHashAreValid()
+    public void Create_ShouldReturnSuccess_WhenLoginPasswordAndPasswordHashAreValid()
     {
         // Arrange
         const string login = "admin";
+        const string password = "Password1!";
         const string passwordHash = "Password1!";
 
         // Act
-        Result<Admin> result = Admin.Create(login, passwordHash);
+        Result<Admin> result = Admin.Create(login, password, passwordHash);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -37,7 +38,7 @@ public sealed class AdminTests
         const string expectedMessage = "Логін не може бути пустим";
 
         // Act
-        Result<Admin> result = Admin.Create(login!, passwordHash);
+        Result<Admin> result = Admin.Create(login!, "Password1!", passwordHash);
 
         // Assert
         result.IsSuccess.Should().BeFalse();
@@ -57,15 +58,16 @@ public sealed class AdminTests
     [InlineData("PASSWORD1!", "Пароль повинен мати хоча б одну малу літеру")]
     [InlineData("Password!", "Пароль повинен мати хоча б одну цифру")]
     [InlineData("Password1", "Пароль повинен мати хоча б один спеціальний символ")]
-    public void Create_ShouldReturnFailure_WhenPasswordHashIsInvalid(
-        string? passwordHash,
+    public void Create_ShouldReturnFailure_WhenPasswordIsInvalid(
+        string? password,
         string expectedMessage)
     {
         // Arrange
         const string login = "admin";
+        const string passwordHash = "hashed-password";
 
         // Act
-        Result<Admin> result = Admin.Create(login, passwordHash!);
+        Result<Admin> result = Admin.Create(login, password!, passwordHash);
 
         // Assert
         result.IsSuccess.Should().BeFalse();
@@ -80,11 +82,12 @@ public sealed class AdminTests
     {
         // Arrange
         string login = string.Empty;
-        const string passwordHash = "short";
+        const string password = "short";
+        const string passwordHash = "hashed-password";
         const string expectedMessage = "Логін не може бути пустим";
 
         // Act
-        Result<Admin> result = Admin.Create(login, passwordHash);
+        Result<Admin> result = Admin.Create(login, password, passwordHash);
 
         // Assert
         result.IsSuccess.Should().BeFalse();
@@ -96,7 +99,7 @@ public sealed class AdminTests
     public void ChangeLogin_ShouldReturnSuccess_WhenNewLoginIsValidAndDifferent()
     {
         // Arrange
-        Result<Admin> createResult = Admin.Create("admin", "Password1!");
+        Result<Admin> createResult = Admin.Create("admin", "Password1!", "Password1!");
         Admin admin = createResult.Value!;
         const string newLogin = "new-admin";
 
@@ -114,7 +117,7 @@ public sealed class AdminTests
     public void ChangeLogin_ShouldReturnFailure_WhenNewLoginMatchesCurrentLogin()
     {
         // Arrange
-        Result<Admin> createResult = Admin.Create("admin", "Password1!");
+        Result<Admin> createResult = Admin.Create("admin", "Password1!", "Password1!");
         Admin admin = createResult.Value!;
         const string currentLogin = "admin";
         const string expectedMessage = "Новий логін має відрізнятися";
@@ -137,7 +140,7 @@ public sealed class AdminTests
     public void ChangeLogin_ShouldReturnFailure_WhenNewLoginIsNullOrWhiteSpace(string? newLogin)
     {
         // Arrange
-        Result<Admin> createResult = Admin.Create("admin", "Password1!");
+        Result<Admin> createResult = Admin.Create("admin", "Password1!", "Password1!");
         Admin admin = createResult.Value!;
         const string currentLogin = "admin";
         const string expectedMessage = "Логін не може бути пустим";
@@ -157,13 +160,14 @@ public sealed class AdminTests
     public void ChangePassword_ShouldReturnSuccess_WhenNewPasswordHashIsValidAndDifferent()
     {
         // Arrange
-        Result<Admin> createResult = Admin.Create("admin", "Password1!");
+        Result<Admin> createResult = Admin.Create("admin", "Password1!", "Password1!");
         Admin admin = createResult.Value!;
         const string oldPasswordHash = "old-password-hash";
+        const string newPassword = "NewPassword1!";
         const string newPasswordHash = "NewPassword1!";
 
         // Act
-        Result result = admin.ChangePassword(oldPasswordHash, newPasswordHash);
+        Result result = admin.ChangePassword(oldPasswordHash, newPassword, newPasswordHash);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -178,13 +182,13 @@ public sealed class AdminTests
     public void ChangePassword_ShouldReturnFailure_WhenNewPasswordHashMatchesOldPasswordHash(string passwordHash)
     {
         // Arrange
-        Result<Admin> createResult = Admin.Create("admin", "Password1!");
+        Result<Admin> createResult = Admin.Create("admin", "Password1!", "Password1!");
         Admin admin = createResult.Value!;
         const string initialPasswordHash = "Password1!";
         const string expectedMessage = "Новий пароль має відрізнятися";
 
         // Act
-        Result result = admin.ChangePassword(passwordHash, passwordHash);
+        Result result = admin.ChangePassword(passwordHash, "NewPassword1!", passwordHash);
 
         // Assert
         result.IsSuccess.Should().BeFalse();
@@ -204,18 +208,19 @@ public sealed class AdminTests
     [InlineData("PASSWORD1!", "Пароль повинен мати хоча б одну малу літеру")]
     [InlineData("Password!", "Пароль повинен мати хоча б одну цифру")]
     [InlineData("Password1", "Пароль повинен мати хоча б один спеціальний символ")]
-    public void ChangePassword_ShouldReturnFailure_WhenNewPasswordHashIsInvalid(
-        string? newPasswordHash,
+    public void ChangePassword_ShouldReturnFailure_WhenNewPasswordIsInvalid(
+        string? newPassword,
         string expectedMessage)
     {
         // Arrange
-        Result<Admin> createResult = Admin.Create("admin", "Password1!");
+        Result<Admin> createResult = Admin.Create("admin", "Password1!", "Password1!");
         Admin admin = createResult.Value!;
         const string oldPasswordHash = "old-password-hash";
+        const string newPasswordHash = "new-password-hash";
         const string initialPasswordHash = "Password1!";
 
         // Act
-        Result result = admin.ChangePassword(oldPasswordHash, newPasswordHash!);
+        Result result = admin.ChangePassword(oldPasswordHash, newPassword!, newPasswordHash);
 
         // Assert
         result.IsSuccess.Should().BeFalse();
