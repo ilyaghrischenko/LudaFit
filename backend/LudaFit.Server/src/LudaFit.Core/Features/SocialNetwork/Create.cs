@@ -121,7 +121,7 @@ internal static class Create
             }
 
             string fileExtension = Path.GetExtension(request.Photo.FileName);
-            string fileName = $"{request.SpecialistId}-{Guid.NewGuid():N}{fileExtension}";
+            var fileName = $"{request.SpecialistId}-{Guid.NewGuid():N}{fileExtension}";
 
             await using Stream photoStream = request.Photo.OpenReadStream();
             string photoUrl = await blobRepository.AddFileAndGetUrlAsync(
@@ -139,7 +139,11 @@ internal static class Create
 
             if (addSocialNetworkResult.IsFailure)
             {
-                await blobRepository.DeleteFileAsync(ContainerName, fileName, cancellationToken);
+                await blobRepository.DeleteFileAsync(
+                    ContainerName,
+                    fileName,
+                    cancellationToken
+                );
                 return addSocialNetworkResult;
             }
 
