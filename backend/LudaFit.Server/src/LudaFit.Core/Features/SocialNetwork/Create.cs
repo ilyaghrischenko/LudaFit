@@ -24,8 +24,6 @@ internal static class Create
         IFormFile Photo
     );
 
-    internal sealed record Response(int Id);
-
     internal sealed class Validator : AbstractValidator<Request>
     {
         public Validator()
@@ -54,7 +52,7 @@ internal static class Create
         {
             app.MapPost("/social-networks", Handle)
                 .Accepts<Request>("multipart/form-data")
-                .Produces<Response>(StatusCodes.Status201Created)
+                .Produces(StatusCodes.Status201Created)
                 .ProducesValidationProblem()
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
@@ -75,16 +73,15 @@ internal static class Create
                 return Results.ValidationProblem(validationResult.ToDictionary());
             }
 
-            Result<Response> createSocialNetworkResult = await handler.HandleAsync(request, cancellationToken);
+            Result createSocialNetworkResult = await handler.HandleAsync(request, cancellationToken);
 
             if (createSocialNetworkResult.IsFailure)
             {
                 ErrorDetails errorDetails = createSocialNetworkResult.ErrorDetails!;
                 return ToFailureHttpResult(errorDetails);
             }
-
-            Response response = createSocialNetworkResult.Value!;
-            return Results.Created($"/api/social-networks/{response.Id}", response);
+            
+            return Results.Created();
         }
 
         private static IResult ToFailureHttpResult(ErrorDetails errorDetails)
@@ -106,7 +103,7 @@ internal static class Create
         LudaFitDbContext db,
         BlobRepository blobRepository) : IScopedType
     {
-        public async Task<Result<Response>> HandleAsync(Request request, CancellationToken cancellationToken)
+        public async Task<Result> HandleAsync(Request request, CancellationToken cancellationToken)
         {
             SpecialistEntity? specialist = await db.Specialists
                 .Include("_socialNetworks")
@@ -117,7 +114,7 @@ internal static class Create
 
             if (specialist is null)
             {
-                return Result<Response>.Failure(
+                return Result.Failure(
                     "Спеціаліста не знайдено",
                     HttpStatusCode.NotFound
                 );
@@ -142,22 +139,13 @@ internal static class Create
 
             if (addSocialNetworkResult.IsFailure)
             {
-                return Result<Response>.Failure(addSocialNetworkResult);
-            }
-
-            SocialNetworkEntity? socialNetwork = specialist.SocialNetworks
-                .OrderByDescending(socialNetwork => socialNetwork.Id)
-                .FirstOrDefault(socialNetwork =>
-                    socialNetwork.Name.Equals(request.Name.Trim(), StringComparison.OrdinalIgnoreCase));
-
-            if (socialNetwork is null)
-            {
-                return Result<Response>.Failure("Не вдалося створити соціальну мережу");
+                await blobRepository.DeleteFileAsync(ContainerName, fileName, cancellationToken);
+                return addSocialNetworkResult;
             }
 
             await db.SaveChangesAsync(cancellationToken);
 
-            return new Response(socialNetwork.Id);
+            return Result.Success();
         }
     }
 }

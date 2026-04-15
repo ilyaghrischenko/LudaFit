@@ -1,5 +1,9 @@
 # Project: LudaFit (backend)
 
+## Git
+- **Main branch name:** main.
+- **Develop branch name:** develop.
+
 ## Architecture & Patterns
 - **VSA (Vertical-Sliced-Architecture) with single static file**.
 - **Result pattern**.
