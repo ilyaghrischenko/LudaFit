@@ -141,21 +141,6 @@ internal static class Create
                 );
             }
 
-            bool specialistNameAlreadyExists = await db.Specialists
-                .AsNoTracking()
-                .AnyAsync(
-                    specialist => specialist.Name == request.Name,
-                    cancellationToken
-                );
-
-            if (specialistNameAlreadyExists)
-            {
-                return Result.Failure(
-                    "Спеціаліст з таким ім'ям вже існує",
-                    HttpStatusCode.Conflict
-                );
-            }
-
             Result<TimeRange> createWorkTimeResult = TimeRange.Create(
                 request.StartWorkHour,
                 request.StartWorkMinute,
@@ -169,14 +154,13 @@ internal static class Create
             }
 
             string specialistFileExtension = Path.GetExtension(request.Photo.FileName);
-            string specialistFileName = $"specialist-{Guid.NewGuid():N}{specialistFileExtension}";
-            string? specialistPhotoUrl = null;
+            var specialistFileName = $"specialist-{Guid.NewGuid():N}{specialistFileExtension}";
             List<string> socialNetworkFileNames = [];
 
             try
             {
                 await using Stream specialistPhotoStream = request.Photo.OpenReadStream();
-                specialistPhotoUrl = await blobRepository.AddFileAndGetUrlAsync(
+                string specialistPhotoUrl = await blobRepository.AddFileAndGetUrlAsync(
                     AzureBlobContainerName.Specialist,
                     specialistFileName,
                     specialistPhotoStream,
@@ -266,7 +250,7 @@ internal static class Create
             foreach (SocialNetworkRequest socialNetworkRequest in socialNetworks)
             {
                 string socialNetworkFileExtension = Path.GetExtension(socialNetworkRequest.Photo.FileName);
-                string socialNetworkFileName = $"{socialNetworkRequest.Name.Trim()}-{Guid.NewGuid():N}{socialNetworkFileExtension}";
+                var socialNetworkFileName = $"{socialNetworkRequest.Name.Trim()}-{Guid.NewGuid():N}{socialNetworkFileExtension}";
 
                 await using Stream socialNetworkPhotoStream = socialNetworkRequest.Photo.OpenReadStream();
                 string socialNetworkPhotoUrl = await blobRepository.AddFileAndGetUrlAsync(
