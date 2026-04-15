@@ -15,8 +15,6 @@ namespace LudaFit.Core.Features.SocialNetwork;
 
 internal static class Create
 {
-    private const string ContainerName = "social-networks";
-
     internal sealed record Request(
         int SpecialistId,
         string Name,
@@ -125,7 +123,7 @@ internal static class Create
 
             await using Stream photoStream = request.Photo.OpenReadStream();
             string photoUrl = await blobRepository.AddFileAndGetUrlAsync(
-                ContainerName,
+                AzureBlobContainerName.SocialNetwork,
                 fileName,
                 photoStream,
                 cancellationToken
@@ -140,7 +138,7 @@ internal static class Create
             if (addSocialNetworkResult.IsFailure)
             {
                 await blobRepository.DeleteFileAsync(
-                    ContainerName,
+                    AzureBlobContainerName.SocialNetwork,
                     fileName,
                     cancellationToken
                 );

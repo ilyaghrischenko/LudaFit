@@ -7,7 +7,7 @@ namespace LudaFit.Infrastructure.AzureBlobStorage;
 //todo: поменять заметку про блоб
 public sealed class BlobRepository(BlobServiceClient blobServiceClient) : IScopedType
 {
-    public async Task<string> AddFileAndGetUrlAsync(string containerName, string fileName, Stream fileStream, CancellationToken ct)
+    public async Task<string> AddFileAndGetUrlAsync(AzureBlobContainerName containerName, string fileName, Stream fileStream, CancellationToken ct)
     {
         BlobContainerClient container = blobServiceClient.GetBlobContainerClient(containerName);
         await container.CreateIfNotExistsAsync(cancellationToken: ct);
@@ -25,7 +25,7 @@ public sealed class BlobRepository(BlobServiceClient blobServiceClient) : IScope
         return blob.Uri;
     }
 
-    public async Task DeleteFileAsync(string containerName, string fileName, CancellationToken ct)
+    public async Task DeleteFileAsync(AzureBlobContainerName containerName, string fileName, CancellationToken ct)
     {
         BlobContainerClient container = blobServiceClient.GetBlobContainerClient(containerName);
         BlobClient blobClient = container.GetBlobClient(fileName);
