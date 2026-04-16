@@ -2,11 +2,8 @@ using System.Net;
 using FluentValidation;
 using FluentValidation.Results;
 using LudaFit.Core.Features.Common.Interfaces;
-using LudaFit.Core.Mapping;
 using LudaFit.Domain.Entities;
 using LudaFit.Domain.ValueObjects;
-using LudaFit.Infrastructure.Gmail;
-using LudaFit.Infrastructure.Gmail.Options;
 using LudaFit.Infrastructure.SQLite;
 using LudaFit.SharedKernel.Interfaces;
 using LudaFit.SharedKernel.Models;
@@ -14,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
-namespace LudaFit.Core.Features.Booking;
+namespace LudaFit.Core.Features.Bookings;
 
 internal static class Create
 {

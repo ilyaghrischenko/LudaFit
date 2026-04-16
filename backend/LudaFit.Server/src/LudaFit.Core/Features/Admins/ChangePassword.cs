@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace LudaFit.Core.Features.Admin;
+namespace LudaFit.Core.Features.Admins;
 
 internal static class ChangePassword
 {

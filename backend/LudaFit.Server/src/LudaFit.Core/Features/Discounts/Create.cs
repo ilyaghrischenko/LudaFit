@@ -2,45 +2,31 @@ using System.Net;
 using FluentValidation;
 using FluentValidation.Results;
 using LudaFit.Core.Features.Common.Interfaces;
-using LudaFit.Infrastructure.AzureBlobStorage;
+using LudaFit.Domain.Entities;
+using LudaFit.Domain.ValueObjects;
 using LudaFit.Infrastructure.SQLite;
 using LudaFit.SharedKernel.Interfaces;
 using LudaFit.SharedKernel.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using SocialNetworkEntity = LudaFit.Domain.Entities.SocialNetwork;
-using SpecialistEntity = LudaFit.Domain.Entities.Specialist;
 
-namespace LudaFit.Core.Features.SocialNetwork;
+namespace LudaFit.Core.Features.Discounts;
 
 internal static class Create
 {
     internal sealed record Request(
-        int SpecialistId,
-        string Name,
-        string Url,
-        IFormFile Photo
+        DateOnly StartDate,
+        DateOnly EndDate,
+        uint Percent
     );
 
     internal sealed class Validator : AbstractValidator<Request>
     {
         public Validator()
         {
-            RuleFor(x => x.SpecialistId)
-                .GreaterThan(0);
-
-            RuleFor(x => x.Name)
-                .NotEmpty();
-
-            RuleFor(x => x.Url)
-                .NotEmpty();
-
-            RuleFor(x => x.Photo)
-                .NotNull();
-
-            RuleFor(x => x.Photo.Length)
-                .GreaterThan(0)
-                .When(x => x.Photo is not null);
+            RuleFor(discount => discount.Percent)
+                .GreaterThan(0u)
+                .LessThanOrEqualTo(100u);
         }
     }
 
@@ -48,18 +34,16 @@ internal static class Create
     {
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
-            app.MapPost("/social-networks", Handle)
-                .Accepts<Request>("multipart/form-data")
+            app.MapPost("/discounts", Handle)
                 .Produces(StatusCodes.Status201Created)
                 .ProducesValidationProblem()
                 .ProducesProblem(StatusCodes.Status400BadRequest)
-                .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status409Conflict)
-                .WithTags("SocialNetwork");
+                .WithTags("Discount");
         }
 
         private static async Task<IResult> Handle(
-            [FromForm] Request request,
+            [FromBody] Request request,
             [FromServices] IValidator<Request> validator,
             [FromServices] Handler handler,
             CancellationToken cancellationToken)
@@ -71,14 +55,14 @@ internal static class Create
                 return Results.ValidationProblem(validationResult.ToDictionary());
             }
 
-            Result createSocialNetworkResult = await handler.HandleAsync(request, cancellationToken);
+            Result createDiscountResult = await handler.HandleAsync(request, cancellationToken);
 
-            if (createSocialNetworkResult.IsFailure)
+            if (createDiscountResult.IsFailure)
             {
-                ErrorDetails errorDetails = createSocialNetworkResult.ErrorDetails!;
+                ErrorDetails errorDetails = createDiscountResult.ErrorDetails!;
                 return ToFailureHttpResult(errorDetails);
             }
-            
+
             return Results.Created();
         }
 
@@ -99,52 +83,52 @@ internal static class Create
 
     internal sealed class Handler(
         LudaFitDbContext db,
-        BlobRepository blobRepository) : IScopedType
+        TimeProvider timeProvider) : IScopedType
     {
         public async Task<Result> HandleAsync(Request request, CancellationToken cancellationToken)
         {
-            SpecialistEntity? specialist = await db.Specialists
-                .Include("_socialNetworks")
-                .FirstOrDefaultAsync(
-                    specialist => specialist.Id == request.SpecialistId,
+            bool hasOverlappingDiscount = await db.Discounts
+                .AsNoTracking()
+                .AnyAsync(
+                    discount => discount.DateRange.Start <= request.EndDate
+                                && discount.DateRange.End >= request.StartDate,
                     cancellationToken
                 );
 
-            if (specialist is null)
+            if (hasOverlappingDiscount)
             {
                 return Result.Failure(
-                    "Спеціаліста не знайдено",
-                    HttpStatusCode.NotFound
+                    "Знижка з таким періодом вже існує",
+                    HttpStatusCode.Conflict
                 );
             }
 
-            string fileExtension = Path.GetExtension(request.Photo.FileName);
-            var fileName = $"{request.SpecialistId}-{Guid.NewGuid():N}{fileExtension}";
+            DateOnly currentDate = DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime);
 
-            await using Stream photoStream = request.Photo.OpenReadStream();
-            string photoUrl = await blobRepository.AddFileAndGetUrlAsync(
-                AzureBlobContainerName.SocialNetwork,
-                fileName,
-                photoStream,
-                cancellationToken
+            Result<DateRange> createDateRangeResult = DateRange.Create(
+                currentDate,
+                request.StartDate,
+                request.EndDate
             );
 
-            Result addSocialNetworkResult = specialist.AddSocialNetwork(
-                request.Name,
-                request.Url,
-                photoUrl
-            );
-
-            if (addSocialNetworkResult.IsFailure)
+            if (createDateRangeResult.IsFailure)
             {
-                await blobRepository.DeleteFileAsync(
-                    AzureBlobContainerName.SocialNetwork,
-                    fileName,
-                    cancellationToken
-                );
-                return addSocialNetworkResult;
+                return createDateRangeResult;
             }
 
+            Result<Discount> createDiscountResult = Discount.Create(
+                createDateRangeResult.Value!,
+                request.Percent
+            );
+
+            if (createDiscountResult.IsFailure)
+            {
+                return createDiscountResult;
+            }
+
+            Discount discount = createDiscountResult.Value!;
+
+            await db.Discounts.AddAsync(discount, cancellationToken);
             await db.SaveChangesAsync(cancellationToken);
 
             return Result.Success();

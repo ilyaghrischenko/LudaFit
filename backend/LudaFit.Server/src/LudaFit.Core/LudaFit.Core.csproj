@@ -32,13 +32,13 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Features\Admin\" />
-      <Folder Include="Features\Booking\" />
-      <Folder Include="Features\Discount\" />
+      <Folder Include="Features\Admins\" />
+      <Folder Include="Features\Bookings\" />
+      <Folder Include="Features\Discounts\" />
       <Folder Include="Features\Page\" />
-      <Folder Include="Features\Service\" />
-      <Folder Include="Features\SocialNetwork\" />
-      <Folder Include="Features\Specialist\" />
+      <Folder Include="Features\Services\" />
+      <Folder Include="Features\SocialNetworks\" />
+      <Folder Include="Features\Specialists\" />
     </ItemGroup>
 
 </Project>

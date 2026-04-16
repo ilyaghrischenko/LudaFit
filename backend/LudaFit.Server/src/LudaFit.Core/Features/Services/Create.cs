@@ -9,10 +9,8 @@ using LudaFit.SharedKernel.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using DiscountEntity = LudaFit.Domain.Entities.Discount;
-using ServiceEntity = LudaFit.Domain.Entities.Service;
 
-namespace LudaFit.Core.Features.Service;
+namespace LudaFit.Core.Features.Services;
 
 internal static class Create
 {
@@ -100,7 +98,7 @@ internal static class Create
     {
         public async Task<Result> HandleAsync(Request request, CancellationToken cancellationToken)
         {
-            DiscountEntity? discount = null;
+            Discount? discount = null;
 
             if (request.DiscountId.HasValue)
             {
@@ -126,7 +124,7 @@ internal static class Create
                 }
             }
 
-            Result<ServiceEntity> createServiceResult = ServiceEntity.Create(
+            Result<Service> createServiceResult = Service.Create(
                 request.Name,
                 request.Description,
                 request.Price,
@@ -138,7 +136,7 @@ internal static class Create
                 return createServiceResult;
             }
 
-            ServiceEntity service = createServiceResult.Value!;
+            Service service = createServiceResult.Value!;
 
             await db.Services.AddAsync(service, cancellationToken);
 

@@ -3,7 +3,6 @@ using FluentValidation;
 using FluentValidation.Results;
 using LudaFit.Core.Features.Common.Interfaces;
 using LudaFit.Core.Services;
-using LudaFit.Domain.Entities;
 using LudaFit.Infrastructure.SQLite;
 using LudaFit.SharedKernel.Interfaces;
 using LudaFit.SharedKernel.Models;
@@ -11,7 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace LudaFit.Core.Features.Admin;
+namespace LudaFit.Core.Features.Admins;
 
 internal static class Login
 {

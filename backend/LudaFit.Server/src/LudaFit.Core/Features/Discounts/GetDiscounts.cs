@@ -1,13 +1,13 @@
 using LudaFit.Core.Features.Common.Dto;
-using LudaFit.Core.Features.Common.Interfaces;
 using LudaFit.Core.Features.Common.Extensions;
+using LudaFit.Core.Features.Common.Interfaces;
 using LudaFit.Core.Features.Common.Parameters;
+using LudaFit.Domain.Entities;
 using LudaFit.Infrastructure.SQLite;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ServiceEntity = LudaFit.Domain.Entities.Service;
 
-namespace LudaFit.Core.Features.Discount;
+namespace LudaFit.Core.Features.Discounts;
 
 internal static class GetDiscounts
 {
@@ -50,7 +50,7 @@ internal static class GetDiscounts
                         entity.DateRange.End,
                         entity.DateRange.Start <= currentDate
                         && entity.DateRange.End >= currentDate,
-                        EF.Property<List<ServiceEntity>>(entity, "_services")
+                        EF.Property<List<Service>>(entity, "_services")
                             .Select(service => service.Name)
                             .ToList()
                     ),
