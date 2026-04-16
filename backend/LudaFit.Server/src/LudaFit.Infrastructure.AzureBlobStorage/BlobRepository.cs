@@ -32,7 +32,7 @@ public sealed class BlobRepository(BlobServiceClient blobServiceClient) : IScope
         await blobClient.DeleteIfExistsAsync(cancellationToken: ct);
     }
 
-    public async Task DeleteAllFilesByNameAsync(string containerName, string fileName, CancellationToken ct)
+    public async Task DeleteAllFilesByNameAsync(AzureBlobContainerName containerName, string fileName, CancellationToken ct)
     {
         BlobContainerClient container = blobServiceClient.GetBlobContainerClient(containerName);
 

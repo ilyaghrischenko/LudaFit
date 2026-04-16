@@ -10,4 +10,6 @@ WebApplication app = builder.Build();
 
 app.UseConfiguration();
 
+//todo: решить ВСЕ ПРАГМА
+
 app.Run();
