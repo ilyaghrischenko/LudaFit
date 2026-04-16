@@ -2,16 +2,15 @@ using System.Net;
 using FluentValidation;
 using FluentValidation.Results;
 using LudaFit.Core.Features.Common.Interfaces;
+using LudaFit.Domain.Entities;
 using LudaFit.Infrastructure.AzureBlobStorage;
 using LudaFit.Infrastructure.SQLite;
 using LudaFit.SharedKernel.Interfaces;
 using LudaFit.SharedKernel.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using SocialNetworkEntity = LudaFit.Domain.Entities.SocialNetwork;
-using SpecialistEntity = LudaFit.Domain.Entities.Specialist;
 
-namespace LudaFit.Core.Features.SocialNetwork;
+namespace LudaFit.Core.Features.SocialNetworks;
 
 internal static class Create
 {
@@ -103,7 +102,7 @@ internal static class Create
     {
         public async Task<Result> HandleAsync(Request request, CancellationToken cancellationToken)
         {
-            SpecialistEntity? specialist = await db.Specialists
+            Specialist? specialist = await db.Specialists
                 .Include("_socialNetworks")
                 .FirstOrDefaultAsync(
                     specialist => specialist.Id == request.SpecialistId,

@@ -9,9 +9,8 @@ using LudaFit.SharedKernel.Interfaces;
 using LudaFit.SharedKernel.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using DiscountEntity = LudaFit.Domain.Entities.Discount;
 
-namespace LudaFit.Core.Features.Discount;
+namespace LudaFit.Core.Features.Discounts;
 
 internal static class Create
 {
@@ -26,7 +25,8 @@ internal static class Create
         public Validator()
         {
             RuleFor(discount => discount.Percent)
-                .GreaterThan(0u);
+                .GreaterThan(0u)
+                .LessThanOrEqualTo(100u);
         }
     }
 
@@ -116,7 +116,7 @@ internal static class Create
                 return createDateRangeResult;
             }
 
-            Result<DiscountEntity> createDiscountResult = DiscountEntity.Create(
+            Result<Discount> createDiscountResult = Discount.Create(
                 createDateRangeResult.Value!,
                 request.Percent
             );
@@ -126,7 +126,7 @@ internal static class Create
                 return createDiscountResult;
             }
 
-            DiscountEntity discount = createDiscountResult.Value!;
+            Discount discount = createDiscountResult.Value!;
 
             await db.Discounts.AddAsync(discount, cancellationToken);
             await db.SaveChangesAsync(cancellationToken);

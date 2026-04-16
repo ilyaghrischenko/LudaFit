@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
-namespace LudaFit.Core.Features.Specialist;
+namespace LudaFit.Core.Features.Specialists;
 
 internal static class Create
 {

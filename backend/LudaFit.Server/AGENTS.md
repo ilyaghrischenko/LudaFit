@@ -1,6 +1,8 @@
 # Project: LudaFit (backend)
 
 ## Git
+- **GitHub Owner:** ilyaghrischenko.
+- **GitHub Repo:** LudaFit.
 - **Main branch name:** main.
 - **Develop branch name:** develop.
 

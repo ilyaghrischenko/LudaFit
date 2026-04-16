@@ -1,13 +1,10 @@
-using FluentValidation;
-using FluentValidation.Results;
 using LudaFit.Core.Features.Common.Interfaces;
 using LudaFit.Domain.Entities;
 using LudaFit.Infrastructure.SQLite;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using SocialNetworkEntity = LudaFit.Domain.Entities.SocialNetwork;
 
-namespace LudaFit.Core.Features.Specialist;
+namespace LudaFit.Core.Features.Specialists;
 
 internal static class GetSpecialist
 {
@@ -52,7 +49,7 @@ internal static class GetSpecialist
                     entity.Description,
                     entity.WorkTime.Start,
                     entity.WorkTime.End,
-                    EF.Property<List<SocialNetworkEntity>>(entity, "_socialNetworks")
+                    EF.Property<List<SocialNetwork>>(entity, "_socialNetworks")
                         .Select(sn => new SocialNetworkDto(
                             sn.Id,
                             sn.Name,
