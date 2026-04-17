@@ -34,7 +34,7 @@
 - **Result Variable Naming:** Name `Result<T>` variables after the operation that produced them, prefixed by the verb: `createUserResult`, `sendEmailResult`, `uploadFileResult`. Never use generic names like `result`, `res`, or the entity name alone (`clientMetricsResult` instead of `createClientMetricsResult`). Helper methods that map failures to HTTP responses MUST reflect their specificity in the name: `ToFailureHttpResult()`, not `ToHttpResult()`. Parameter names for domain entities inside lambdas MUST reflect the domain concept, not the generic `entity` (e.g., `user =>`, `client =>`, `workout =>`).
 - **DI:** Use constructor injection only.
 - **Rich Models (DDD):** Use private setters for entities. Instantiation MUST happen via static factory methods (e.g., Create()) returning `Result<T>`.
-- **VSA:** Endpoints MUST be defined as Minimal APIs using IEndpointRouteBuilder inside the static file.
+- **VSA:** Endpoints MUST be defined as Minimal APIs using `IEndpointRouteBuilder` inside the static file.
 - **Data Access:** DO NOT USE the Repository pattern. Inject and use `LudaFit.Infrastructure.SQLite.LudaFitDbContext` DIRECTLY.
 - **EF Core:** Use `.AsNoTracking()` for pure read operations.
 - **Hashing:** Use `Microsoft.AspNetCore.Identity.IPasswordHasher<T>` for hashing passwords.
