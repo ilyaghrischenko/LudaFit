@@ -1,39 +1,46 @@
-using LudaFit.Domain.Entities;
+using System.Data.Common;
 using LudaFit.Infrastructure.SQLite;
 using Microsoft.EntityFrameworkCore;
 
 namespace LudaFit.Core.BackgroundServices;
 
-internal sealed class DeleteExpiredDiscountsBackgroundService(IServiceProvider serviceProvider) : BackgroundService
+internal sealed partial class DeleteExpiredDiscountsBackgroundService(
+    IServiceProvider serviceProvider,
+    TimeProvider timeProvider,
+    ILogger<DeleteExpiredDiscountsBackgroundService> logger) : BackgroundService
 {
+    //todo: написать заметку про ПРАВИЛЬНОЕ логирование
+    [LoggerMessage(1, LogLevel.Error, "Error while deleting expired discounts. Date: {Date}")]
+    private partial void LogDbError(DbException ex, DateOnly date);
+    
+    [LoggerMessage(2, LogLevel.Information, "Operation cancelled. Date: {Date}")]
+    private partial void LogCancelledOperation(DateOnly date);
+    
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            TimeSpan timeUntilMidnight = TimeSpan.FromDays(1);
-            
+            await using AsyncServiceScope scope = serviceProvider.CreateAsyncScope();
+
+            var db = scope.ServiceProvider.GetRequiredService<LudaFitDbContext>();
+
+            DateTime now = timeProvider.GetUtcNow().UtcDateTime;
+            DateTime nextMidnight = now.Date.AddDays(1);
+                
+            TimeSpan timeUntilMidnight = nextMidnight - now;
+                
+            DateOnly currentDate = DateOnly.FromDateTime(now);
+
             try
             {
-                await using AsyncServiceScope scope = serviceProvider.CreateAsyncScope();
-
-                var db = scope.ServiceProvider.GetRequiredService<LudaFitDbContext>();
-                var timeProvider = scope.ServiceProvider.GetRequiredService<TimeProvider>();
-
-                DateTime now = timeProvider.GetUtcNow().UtcDateTime;
-                DateTime nextMidnight = now.Date.AddDays(1);
-                DateOnly currentDate = DateOnly.FromDateTime(now);
-                
-                timeUntilMidnight = nextMidnight - now;
-
                 await db.Discounts
                     .Where(discount => discount.DateRange.End < currentDate)
                     .ExecuteDeleteAsync(stoppingToken);
             }
-#pragma warning disable CA1031
-            catch (Exception ex)
-#pragma warning restore CA1031
+            catch (DbException ex)
             {
-                Console.WriteLine(ex);
+                // ignored
+                LogDbError(ex, currentDate);
             }
             finally
             {
@@ -44,6 +51,7 @@ internal sealed class DeleteExpiredDiscountsBackgroundService(IServiceProvider s
                 catch (TaskCanceledException)
                 {
                     // ignored
+                    LogCancelledOperation(currentDate);
                 }
             }
         }

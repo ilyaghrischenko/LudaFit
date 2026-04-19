@@ -14,11 +14,11 @@ public abstract class OutboxMessageEntity(DateTime currentDateTime) : BaseEntity
 
     public DateTime NextAttemptAtUtc { get; protected set; } = currentDateTime;
 
-    public virtual Result AddAnotherTry()
+    public virtual bool IsAnotherAttemptAvailable()
     {
         if (UsedAllAttempts)
         {
-            return new ErrorDetails("Всі спроби вичерпано");
+            return false;
         }
         
         AttemptsCount += 1;
@@ -32,6 +32,6 @@ public abstract class OutboxMessageEntity(DateTime currentDateTime) : BaseEntity
             _ => NextAttemptAtUtc
         };
         
-        return Result.Success();
+        return true;
     }
 }

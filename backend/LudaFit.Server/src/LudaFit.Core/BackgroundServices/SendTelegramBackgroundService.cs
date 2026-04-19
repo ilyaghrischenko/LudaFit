@@ -1,7 +1,6 @@
+using System.Data.Common;
 using LudaFit.Core.Mapping;
 using LudaFit.Domain.Entities;
-using LudaFit.Infrastructure.Gmail;
-using LudaFit.Infrastructure.Gmail.Options;
 using LudaFit.Infrastructure.SQLite;
 using LudaFit.Infrastructure.Telegram;
 using LudaFit.Infrastructure.Telegram.Options;
@@ -10,22 +9,30 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LudaFit.Core.BackgroundServices;
 
-internal sealed class SendTelegramBackgroundService(IServiceProvider serviceProvider) : BackgroundService
+internal sealed partial class SendTelegramBackgroundService(
+    IServiceProvider serviceProvider,
+    TimeProvider timeProvider,
+    ILogger<SendTelegramBackgroundService> logger) : BackgroundService
 {
+    [LoggerMessage(1, LogLevel.Error, "Error while deleting expired discounts. DateTime: {DateTime}")]
+    private partial void LogDbError(DbException ex, DateTime dateTime);
+    
+    [LoggerMessage(2, LogLevel.Information, "Operation cancelled. DateTime: {DateTime}")]
+    private partial void LogCancelledOperation(DateTime dateTime);
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
         {
+            DateTime currentDateTime = timeProvider.GetUtcNow().UtcDateTime;
+
             try
             {
                 await using AsyncServiceScope scope = serviceProvider.CreateAsyncScope();
-                
+
                 var db = scope.ServiceProvider.GetRequiredService<LudaFitDbContext>();
                 var telegramSender = scope.ServiceProvider.GetRequiredService<TelegramSender>();
-                var timeProvider = scope.ServiceProvider.GetRequiredService<TimeProvider>();
 
-                DateTime currentDateTime = timeProvider.GetUtcNow().UtcDateTime;
-                
                 List<TelegramOutboxMessage> telegramMessages = await db.TelegramOutboxMessages
                     .Include(telegramMessage => telegramMessage.Booking)
                     .Where(telegramMessage => telegramMessage.AttemptsCount < telegramMessage.MaxAttemptNumber
@@ -34,9 +41,9 @@ internal sealed class SendTelegramBackgroundService(IServiceProvider serviceProv
 
                 foreach (TelegramOutboxMessage telegramMessage in telegramMessages)
                 {
-                    Result addAnotherTryResult = telegramMessage.AddAnotherTry();
+                    bool isAnotherAttemptAvailable = telegramMessage.IsAnotherAttemptAvailable();
 
-                    if (addAnotherTryResult.IsFailure)
+                    if (isAnotherAttemptAvailable is false)
                     {
                         db.TelegramOutboxMessages.Remove(telegramMessage);
                         await db.SaveChangesAsync(stoppingToken);
@@ -53,33 +60,20 @@ internal sealed class SendTelegramBackgroundService(IServiceProvider serviceProv
                         booking.ToEmailOptions()
                     );
 
-                    var isSentSuccessfully = false;
+                    Result sendEmailResult = await telegramSender.SendAsync(options, stoppingToken);
 
-                    try
-                    {
-                        Result sendEmailResult = await telegramSender.SendAsync(options, stoppingToken);
-                        isSentSuccessfully = sendEmailResult.IsSuccess;
-                    }
-#pragma warning disable CA1031
-                    catch (Exception ex)
-#pragma warning restore CA1031
-                    {
-                        Console.WriteLine(ex);
-                    }
-
-                    if (isSentSuccessfully || telegramMessage.UsedAllAttempts)
+                    if (sendEmailResult.IsSuccess || telegramMessage.UsedAllAttempts)
                     {
                         db.TelegramOutboxMessages.Remove(telegramMessage);
                     }
-                    
+
                     await db.SaveChangesAsync(stoppingToken);
                 }
             }
-#pragma warning disable CA1031
-            catch (Exception ex)
-#pragma warning restore CA1031
+            catch (DbException ex)
             {
-                Console.WriteLine(ex);
+                // ignored
+                LogDbError(ex, currentDateTime);
             }
             finally
             {
@@ -87,9 +81,10 @@ internal sealed class SendTelegramBackgroundService(IServiceProvider serviceProv
                 {
                     await Task.Delay(TimeSpan.FromSeconds(20), stoppingToken);
                 }
-                catch (TaskCanceledException ex)
+                catch (TaskCanceledException)
                 {
-                    Console.WriteLine(ex);
+                    // ignored
+                    LogCancelledOperation(currentDateTime);
                 }
             }
         }

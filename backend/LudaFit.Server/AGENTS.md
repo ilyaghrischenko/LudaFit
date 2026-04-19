@@ -42,6 +42,7 @@
 - **Types Auto-Registration:** Ensure services/handlers explicitly implements the custom interfaces (IScopedType, ITransientType, ISingletonType) from `LudaFit.SharedKernel.Interfaces` to guarantee automatic DI registration.
 - **Endpoints Auto-Registration:** Ensure Endpoint classes explicitly implements `LudaFit.Core.Features.Common.Interfaces.IEndpoint` to guarantee automatic registration.
 - **Date/DateTime:** Always get current Date/DateTime via `TimeProvider`.
+- **Logging:** Use `ILogger<T>`.
 
 ## Available Skills & Tools
 - **Unit Testing:** Use the `$unit-tests` skill for any testing tasks. Follow its internal xUnit/FluentAssertions rules.
