@@ -10,22 +10,23 @@ namespace LudaFit.Core.Features.Services;
 
 internal static class GetServices
 {
-    internal sealed record ServiceItemDto(
-        int Id,
-        string Name,
-        string Description,
-        decimal Price,
-        decimal FinalPrice,
-        DiscountDto? Discount
-    ) : BaseDto(Id);
+    internal sealed record ServiceItemDto(int Id) : BaseDto(Id)
+    {
+        public required string Name { get; init; }
+        public required string Description { get; init; }
+        public required decimal Price { get; init; }
+        public required decimal FinalPrice { get; init; }
+        public required DiscountDto? Discount { get; init; }
+    }
 
-    internal sealed record DiscountDto(
-        int Id,
-        uint Percent,
-        DateOnly StartDate,
-        DateOnly EndDate,
-        bool IsActive
-    );
+    internal sealed record DiscountDto
+    {
+        public required int Id { get; init; }
+        public required uint Percent { get; init; }
+        public required DateOnly StartDate { get; init; }
+        public required DateOnly EndDate { get; init; }
+        public required bool IsActive { get; init; }
+    }
 
     internal sealed class Endpoint : IEndpoint
     {
@@ -44,36 +45,35 @@ internal static class GetServices
         {
             DateOnly currentDate = DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime);
 
-#pragma warning disable SA1118
             CursorPagination<ServiceItemDto> services = await db.Services
                 .AsNoTracking()
                 .Include(entity => entity.Discount)
                 .ToCursorPagedListAsync(
                     paginationParams,
-                    entity => new ServiceItemDto(
-                        entity.Id,
-                        entity.Name,
-                        entity.Description,
-                        entity.Price,
-                        entity.Discount != null
-                        && entity.Discount.DateRange.Start <= currentDate
-                        && entity.Discount.DateRange.End >= currentDate
+                    entity => new ServiceItemDto(entity.Id)
+                    {
+                        Name = entity.Name,
+                        Description = entity.Description,
+                        Price = entity.Price,
+                        FinalPrice = entity.Discount != null 
+                                     && entity.Discount.DateRange.Start <= currentDate
+                                     && entity.Discount.DateRange.End >= currentDate 
                             ? entity.Price * (1 - entity.Discount.Percent / 100m)
                             : entity.Price,
-                        entity.Discount == null
+                        Discount = entity.Discount == null 
                             ? null
-                            : new DiscountDto(
-                                entity.Discount.Id,
-                                entity.Discount.Percent,
-                                entity.Discount.DateRange.Start,
-                                entity.Discount.DateRange.End,
-                                entity.Discount.DateRange.Start <= currentDate
+                            : new DiscountDto
+                            {
+                                Id = entity.Discount.Id,
+                                Percent = entity.Discount.Percent,
+                                StartDate = entity.Discount.DateRange.Start,
+                                EndDate = entity.Discount.DateRange.End,
+                                IsActive = entity.Discount.DateRange.Start <= currentDate
                                 && entity.Discount.DateRange.End >= currentDate
-                            )
-                    ),
+                            }
+                    },
                     cancellationToken
                 );
-#pragma warning restore SA1118
 
             return Results.Ok(services);
         }

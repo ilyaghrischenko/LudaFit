@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using LudaFit.Core.Features.Common.Dto;
 using LudaFit.Core.Features.Common.Extensions;
 using LudaFit.Core.Features.Common.Interfaces;
@@ -11,14 +12,15 @@ namespace LudaFit.Core.Features.Discounts;
 
 internal static class GetDiscounts
 {
-    internal sealed record Response(
-        int Id,
-        uint Percent,
-        DateOnly StartDate,
-        DateOnly EndDate,
-        bool IsActive,
-        IReadOnlyCollection<string> ServiceNames
-    );
+    internal sealed record Response
+    {
+        public required int Id { get; init; }
+        public required uint Percent { get; init; }
+        public required DateOnly StartDate { get; init; }
+        public required DateOnly EndDate { get; init; }
+        public required bool IsActive { get; init; }
+        public required IReadOnlyCollection<string> ServiceNames { get; init; }
+    }
 
     internal sealed class Endpoint : IEndpoint
     {
@@ -37,26 +39,25 @@ internal static class GetDiscounts
         {
             DateOnly currentDate = DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime);
 
-#pragma warning disable SA1118
             Pagination<Response> discounts = await db.Discounts
                 .AsNoTracking()
                 .OrderByDescending(entity => entity.Id)
                 .ToPagedListAsync(
                     paginationParams,
-                    entity => new Response(
-                        entity.Id,
-                        entity.Percent,
-                        entity.DateRange.Start,
-                        entity.DateRange.End,
-                        entity.DateRange.Start <= currentDate
-                        && entity.DateRange.End >= currentDate,
-                        EF.Property<List<Service>>(entity, "_services")
+                    discount => new Response
+                    {
+                        Id = discount.Id,
+                        Percent = discount.Percent,
+                        StartDate = discount.DateRange.Start,
+                        EndDate = discount.DateRange.End,
+                        IsActive = discount.DateRange.Start <= currentDate
+                        && discount.DateRange.End >= currentDate,
+                        ServiceNames = discount.Services
                             .Select(service => service.Name)
                             .ToList()
-                    ),
+                    },
                     cancellationToken
                 );
-#pragma warning restore SA1118
 
             return Results.Ok(discounts);
         }

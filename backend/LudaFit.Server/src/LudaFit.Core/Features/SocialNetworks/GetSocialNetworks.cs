@@ -10,12 +10,13 @@ namespace LudaFit.Core.Features.SocialNetworks;
 
 internal static class GetSocialNetworks
 {
-    internal sealed record Response(
-        int Id,
-        string Name,
-        string Url,
-        string PhotoUrl
-    );
+    internal sealed record Response
+    {
+        public required int Id { get; init; }
+        public required string Name { get; init; }
+        public required string Url { get; init; }
+        public required string PhotoUrl { get; init; }
+    }
 
     internal sealed class Endpoint : IEndpoint
     {
@@ -36,12 +37,13 @@ internal static class GetSocialNetworks
                 .OrderByDescending(entity => entity.Id)
                 .ToPagedListAsync(
                     paginationParams,
-                    entity => new Response(
-                        entity.Id,
-                        entity.Name,
-                        entity.Url,
-                        entity.PhotoUrl
-                    ),
+                    entity => new Response
+                    {
+                        Id = entity.Id,
+                        Name = entity.Name,
+                        Url = entity.Url,
+                        PhotoUrl = entity.PhotoUrl
+                    },
                     cancellationToken
                 );
 

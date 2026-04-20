@@ -12,36 +12,40 @@ namespace LudaFit.Core.Features.Page;
 
 internal static class GetPage
 {
-    internal sealed record Response(
-        SpecialistDto Specialist,
-        CursorPagination<ServiceItemDto> Services
-    );
+    //todo: напистаь заметку про дто и что лучше через {...}
+    internal sealed record Response
+    {
+        public required SpecialistDto Specialist { get; init; }
+        public required CursorPagination<ServiceItemDto> Services { get; init; }
+    }
 
-    internal sealed record SpecialistDto(
-        int Id,
-        string Name,
-        string PhotoUrl,
-        string Description,
-        TimeOnly WorkTimeStart,
-        TimeOnly WorkTimeEnd
-    );
+    internal sealed record SpecialistDto
+    {
+        public required int Id { get; init; }
+        public required string Name { get; init; }
+        public required string PhotoUrl { get; init; }
+        public required string Description { get; init; }
+        public required TimeOnly WorkTimeStart { get; init; }
+        public required TimeOnly WorkTimeEnd { get; init; }
+    }
 
-    internal sealed record ServiceItemDto(
-        int Id,
-        string Name,
-        string Description,
-        decimal Price,
-        decimal FinalPrice,
-        DiscountDto? Discount
-    ) : BaseDto(Id);
+    internal sealed record ServiceItemDto(int Id) : BaseDto(Id)
+    {
+        public required string Name { get; init; }
+        public required string Description { get; init; }
+        public required decimal Price { get; init; }
+        public required decimal FinalPrice { get; init; }
+        public required DiscountDto? Discount { get; init; }
+    }
 
-    internal sealed record DiscountDto(
-        int Id,
-        uint Percent,
-        DateOnly StartDate,
-        DateOnly EndDate,
-        bool IsActive
-    );
+    internal sealed record DiscountDto
+    {
+        public required int Id { get; init; }
+        public required uint Percent { get; init; }
+        public required DateOnly StartDate { get; init; }
+        public required DateOnly EndDate { get; init; }
+        public required bool IsActive { get; init; }
+    }
 
     internal sealed class Endpoint : IEndpoint
     {
@@ -61,14 +65,15 @@ internal static class GetPage
         {
             SpecialistDto? specialist = await db.Specialists
                 .AsNoTracking()
-                .Select(entity => new SpecialistDto(
-                    entity.Id,
-                    entity.Name,
-                    entity.PhotoUrl,
-                    entity.Description,
-                    entity.WorkTime.Start,
-                    entity.WorkTime.End
-                ))
+                .Select(specialist => new SpecialistDto
+                {
+                    Id = specialist.Id,
+                    Name = specialist.Name,
+                    PhotoUrl = specialist.PhotoUrl,
+                    Description = specialist.Description,
+                    WorkTimeStart = specialist.WorkTime.Start,
+                    WorkTimeEnd = specialist.WorkTime.End
+                })
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (specialist is null)
@@ -78,37 +83,40 @@ internal static class GetPage
 
             DateOnly currentDate = DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime);
 
-#pragma warning disable SA1118
             CursorPagination<ServiceItemDto> services = await db.Services
                 .AsNoTracking()
                 .ToCursorPagedListAsync(
                     paginationParams,
-                    entity => new ServiceItemDto(
-                        entity.Id,
-                        entity.Name,
-                        entity.Description,
-                        entity.Price,
-                        entity.Discount != null
-                        && entity.Discount.DateRange.Start <= currentDate
-                        && entity.Discount.DateRange.End >= currentDate
-                            ? entity.Price * (1 - entity.Discount.Percent / 100m)
-                            : entity.Price,
-                        entity.Discount == null
+                    service => new ServiceItemDto(service.Id)
+                    {
+                        Name = service.Name,
+                        Description = service.Description,
+                        Price = service.Price,
+                        FinalPrice = service.Discount != null 
+                                     && service.Discount.DateRange.Start <= currentDate
+                                     && service.Discount.DateRange.End >= currentDate
+                            ? service.Price * (1 - service.Discount.Percent / 100m)
+                            : service.Price,
+                        Discount = service.Discount == null
                             ? null
-                            : new DiscountDto(
-                                entity.Discount.Id,
-                                entity.Discount.Percent,
-                                entity.Discount.DateRange.Start,
-                                entity.Discount.DateRange.End,
-                                entity.Discount.DateRange.Start <= currentDate
-                                && entity.Discount.DateRange.End >= currentDate
-                            )
-                    ),
+                            : new DiscountDto
+                            {
+                                Id = service.Discount.Id,
+                                Percent = service.Discount.Percent,
+                                StartDate = service.Discount.DateRange.Start,
+                                EndDate = service.Discount.DateRange.End,
+                                IsActive = service.Discount.DateRange.Start <= currentDate 
+                                           && service.Discount.DateRange.End >= currentDate
+                            }
+                    },
                     cancellationToken
                 );
-#pragma warning restore SA1118
 
-            Response response = new(specialist, services);
+            Response response = new()
+            {
+                Specialist = specialist,
+                Services = services
+            };
 
             return Results.Ok(response);
         }

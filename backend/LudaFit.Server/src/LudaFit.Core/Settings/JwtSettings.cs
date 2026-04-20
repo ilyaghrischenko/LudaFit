@@ -3,7 +3,6 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace LudaFit.Core.Settings;
 
-#pragma warning disable CA1812
 internal sealed record JwtSettings
 {
     public required string Issuer { get; set; }
@@ -15,4 +14,3 @@ internal sealed record JwtSettings
     public SymmetricSecurityKey SymmetricSecurityKey =>
         _symmetricSecurityKey ??= new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Key));
 }
-#pragma warning restore CA1812

@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using LudaFit.Core.Features.Common.Dto;
 using LudaFit.Core.Features.Common.Extensions;
 using LudaFit.Core.Features.Common.Interfaces;
@@ -11,61 +12,69 @@ namespace LudaFit.Core.Features.Bookings;
 
 internal static class GetBookings
 {
-    internal sealed record Response(
-        int Id,
-        string ServiceName,
-        decimal ServicePrice,
-        int ServiceId,
-        string FullName,
-        ClientMetricsDto ClientMetrics,
-        string Purpose,
-        string? PhysicalActivities,
-        ClientContactsDto ClientContacts,
-        ClientAdditionalInformationDto? ClientAdditionalInformation,
-        IReadOnlyCollection<DiagnosisDto> Diagnoses
-    );
+    internal sealed record Response
+    {
+        public required int Id { get; init; }
+        public required string ServiceName { get; init; }
+        public required decimal ServicePrice { get; init; }
+        public required int ServiceId { get; init; }
+        public required string FullName { get; init; }
+        public required ClientMetricsDto ClientMetrics { get; init; }
+        public required string Purpose { get; init; }
+        public required string? PhysicalActivities { get; init; }
+        public required ClientContactsDto ClientContacts { get; init; }
+        public required ClientAdditionalInformationDto? ClientAdditionalInformation { get; init; }
+        public required IReadOnlyCollection<DiagnosisDto> Diagnoses { get; init; }
+    }
 
-    internal sealed record ClientMetricsDto(
-        uint Age,
-        uint Height,
-        float Weight,
-        uint WaistSize
-    );
+    internal sealed record ClientMetricsDto
+    {
+        public required uint Age { get; init; }
+        public required uint Height { get; init; }
+        public required float Weight { get; init; }
+        public required uint WaistSize { get; init; }
+    }
 
-    internal sealed record ClientContactsDto(
-        string PhoneNumber,
-        string Email
-    );
+    internal sealed record ClientContactsDto
+    {
+        public required string PhoneNumber { get; init; }
+        public required string Email { get; init; }
+    }
 
-    internal sealed record ClientAdditionalInformationDto(
-        ClientHealthDto ClientHealth,
-        ClientFoodPreferencesDto ClientFoodPreferences,
-        bool FoodWeighing
-    );
+    internal sealed record ClientAdditionalInformationDto
+    {
+        public required ClientHealthDto ClientHealth { get; init; }
+        public required ClientFoodPreferencesDto ClientFoodPreferences { get; init; }
+        public required bool FoodWeighing { get; init; }
+    }
 
-    internal sealed record ClientHealthDto(
-        string? FeelingUnwellComplaints,
-        string? Allergies,
-        string? Intolerances,
-        string? StressAndHowYouCopeWithIt,
-        bool AnxietyTendency
-    );
+    internal sealed record ClientHealthDto
+    {
+        public required string? FeelingUnwellComplaints { get; init; }
+        public required string? Allergies { get; init; }
+        public required string? Intolerances { get; init; }
+        public required string? StressAndHowYouCopeWithIt { get; init; }
+        public required bool AnxietyTendency { get; init; }
+    }
 
-    internal sealed record ClientFoodPreferencesDto(
-        string? FavoriteFoods,
-        string? UnfavoriteFoods
-    );
+    internal sealed record ClientFoodPreferencesDto
+    {
+        public required string? FavoriteFoods { get; init; }
+        public required string? UnfavoriteFoods { get; init; }
+    }
 
-    internal sealed record DiagnosisDto(
-        int Id,
-        string Name,
-        IReadOnlyCollection<MedicineDto> Medicines
-    );
+    internal sealed record DiagnosisDto
+    {
+        public required int Id { get; init; }
+        public required string Name { get; init; }
+        public required IReadOnlyCollection<MedicineDto> Medicines { get; init; }
+    }
 
-    internal sealed record MedicineDto(
-        int Id,
-        string Name
-    );
+    internal sealed record MedicineDto
+    {
+        public required int Id { get; init; }
+        public required string Name { get; init; }
+    }
 
     internal sealed class Endpoint : IEndpoint
     {
@@ -76,68 +85,78 @@ internal static class GetBookings
                 .WithTags("Booking");
         }
 
+        //todo: написать про этот селектор заметку в обсидиан
+        private static readonly Expression<Func<Booking, Response>> Selector = entity => new Response
+        {
+            Id = entity.Id,
+            ServiceName = entity.ServiceName,
+            ServicePrice = entity.ServicePrice,
+            ServiceId = entity.ServiceId,
+            FullName = entity.FullName,
+            ClientMetrics = new ClientMetricsDto
+            {
+                Age = entity.ClientMetrics.Age,
+                Height = entity.ClientMetrics.Height,
+                Weight = entity.ClientMetrics.Weight,
+                WaistSize = entity.ClientMetrics.WaistSize
+            },
+            Purpose = entity.Purpose,
+            PhysicalActivities = entity.PhysicalActivities,
+            ClientContacts = new ClientContactsDto
+            {
+                PhoneNumber = entity.ClientContacts.PhoneNumber,
+                Email = entity.ClientContacts.Email.Address
+            },
+            ClientAdditionalInformation = entity.ClientAdditionalInformation == null
+                ? null
+                : new ClientAdditionalInformationDto
+                {
+                    ClientHealth = new ClientHealthDto
+                    {
+                        FeelingUnwellComplaints =
+                            entity.ClientAdditionalInformation.ClientHealth.FeelingUnwellComplaints,
+                        Allergies = entity.ClientAdditionalInformation.ClientHealth.Allergies,
+                        Intolerances = entity.ClientAdditionalInformation.ClientHealth.Intolerances,
+                        StressAndHowYouCopeWithIt = entity.ClientAdditionalInformation.ClientHealth
+                            .StressAndHowYouCopeWithIt,
+                        AnxietyTendency = entity.ClientAdditionalInformation.ClientHealth.AnxietyTendency
+                    },
+                    ClientFoodPreferences = new ClientFoodPreferencesDto
+                    {
+                        FavoriteFoods = entity.ClientAdditionalInformation.ClientFoodPreferences.FavoriteFoods,
+                        UnfavoriteFoods = entity.ClientAdditionalInformation.ClientFoodPreferences.UnfavoriteFoods
+                    },
+                    FoodWeighing = entity.ClientAdditionalInformation.FoodWeighing
+                },
+            Diagnoses = entity.Diagnoses
+                .Select(diagnosis => new DiagnosisDto
+                {
+                    Id = diagnosis.Id,
+                    Name = diagnosis.Name,
+                    Medicines = diagnosis.Medicines
+                        .Select(medicine => new MedicineDto
+                        {
+                            Id = medicine.Id,
+                            Name = medicine.Name
+                        })
+                        .ToList()
+                })
+                .ToList()
+        };
+
         private static async Task<IResult> Handle(
             [AsParameters] PaginationParams paginationParams,
             [FromServices] LudaFitDbContext db,
             CancellationToken cancellationToken)
         {
-#pragma warning disable SA1118
             Pagination<Response> bookings = await db.Bookings
                 .AsNoTracking()
-                .Include("_diagnoses._medicines")
                 .OrderByDescending(entity => entity.Id)
                 .ToPagedListAsync(
                     paginationParams,
-                    entity => new Response(
-                        entity.Id,
-                        entity.ServiceName,
-                        entity.ServicePrice,
-                        entity.ServiceId,
-                        entity.FullName,
-                        new ClientMetricsDto(
-                            entity.ClientMetrics.Age,
-                            entity.ClientMetrics.Height,
-                            entity.ClientMetrics.Weight,
-                            entity.ClientMetrics.WaistSize
-                        ),
-                        entity.Purpose,
-                        entity.PhysicalActivities,
-                        new ClientContactsDto(
-                            entity.ClientContacts.PhoneNumber,
-                            entity.ClientContacts.Email.Address
-                        ),
-                        entity.ClientAdditionalInformation == null
-                            ? null
-                            : new ClientAdditionalInformationDto(
-                                new ClientHealthDto(
-                                    entity.ClientAdditionalInformation.ClientHealth.FeelingUnwellComplaints,
-                                    entity.ClientAdditionalInformation.ClientHealth.Allergies,
-                                    entity.ClientAdditionalInformation.ClientHealth.Intolerances,
-                                    entity.ClientAdditionalInformation.ClientHealth.StressAndHowYouCopeWithIt,
-                                    entity.ClientAdditionalInformation.ClientHealth.AnxietyTendency
-                                ),
-                                new ClientFoodPreferencesDto(
-                                    entity.ClientAdditionalInformation.ClientFoodPreferences.FavoriteFoods,
-                                    entity.ClientAdditionalInformation.ClientFoodPreferences.UnfavoriteFoods
-                                ),
-                                entity.ClientAdditionalInformation.FoodWeighing
-                            ),
-                        EF.Property<List<Diagnosis>>(entity, "_diagnoses")
-                            .Select(diagnosis => new DiagnosisDto(
-                                diagnosis.Id,
-                                diagnosis.Name,
-                                EF.Property<List<Medicine>>(diagnosis, "_medicines")
-                                    .Select(medicine => new MedicineDto(
-                                        medicine.Id,
-                                        medicine.Name
-                                    ))
-                                    .ToList()
-                            ))
-                            .ToList()
-                    ),
+                    Selector,
                     cancellationToken
                 );
-#pragma warning restore SA1118
 
             return Results.Ok(bookings);
         }

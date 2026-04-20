@@ -2,7 +2,6 @@ using FluentValidation;
 
 namespace LudaFit.Core.Filters;
 
-#pragma warning disable CA1812
 internal sealed class ValidationFilter<TRequest> : IEndpointFilter
 {
     public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
@@ -28,4 +27,3 @@ internal sealed class ValidationFilter<TRequest> : IEndpointFilter
         return await next(context);
     }
 }
-#pragma warning restore CA1812

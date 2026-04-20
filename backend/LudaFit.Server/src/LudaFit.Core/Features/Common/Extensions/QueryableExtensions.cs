@@ -8,6 +8,7 @@ namespace LudaFit.Core.Features.Common.Extensions;
 
 internal static class QueryableExtensions
 {
+    //todo: написать заметку про эти расширения
     public static async Task<Pagination<TDto>> ToPagedListAsync<TSource, TDto>(
         this IQueryable<TSource> source,
         PaginationParams paginationParams,
@@ -41,15 +42,24 @@ internal static class QueryableExtensions
         where TSource : BaseEntity
         where TDto : BaseDto
     {
-        var query = source;
+        IQueryable<TSource> query = source;
         
         if (paginationParams.LastItemId != null)
         {
-            query = query.Where(entity => entity.Id > paginationParams.LastItemId);
+            query = paginationParams.Descending switch
+            {
+                true => query.Where(entity => entity.Id < paginationParams.LastItemId),
+                false => query.Where(entity => entity.Id > paginationParams.LastItemId)
+            };
         }
 
-        var items = await query
-            .OrderBy(entity => entity.Id)
+        query = paginationParams.Descending switch
+        {
+            true => query.OrderByDescending(entity => entity.Id),
+            false => query.OrderBy(entity => entity.Id)
+        };
+
+        List<TDto> items = await query
             .Take(paginationParams.PageSize)
             .Select(selector)
             .ToListAsync(cancellationToken);
