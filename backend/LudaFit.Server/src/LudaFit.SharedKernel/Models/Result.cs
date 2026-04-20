@@ -4,6 +4,7 @@ using System.Net;
 
 namespace LudaFit.SharedKernel.Models;
 
+//todo: обновить/создать заметку про резалт
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 public readonly record struct Result
 {
@@ -61,12 +62,10 @@ public readonly record struct Result
         return new Result(failedResult.ErrorDetails!);
     }
 
-    public TResult Map<TResult>(Func<TResult> onSuccess, Func<string, TResult> onFailure)
-        => IsSuccess ? onSuccess() : onFailure(ErrorDetails!.ErrorMessage);
+    public static Result FromErrorDetails(ErrorDetails errorDetails) 
+        => Failure(errorDetails);
     
-#pragma warning disable CA2225
     public static implicit operator Result(ErrorDetails errorDetails)
-#pragma warning restore CA2225
         => Failure(errorDetails);
 }
 
@@ -149,22 +148,22 @@ public readonly record struct Result<TValue>
         where TResult : TValue
         => new(result.Value, result.ErrorDetails);
 
-    public TResult Map<TResult>(Func<TValue, TResult> onSuccess, Func<string, TResult> onFailure)
-        => IsSuccess ? onSuccess(Value!) : onFailure(ErrorDetails!.ErrorMessage);
-    
-#pragma warning disable CA2225
-    public static implicit operator Result<TValue>(TValue value)
-#pragma warning restore CA2225
+    public static Result<TValue> FromTValue(TValue value) 
         => Success(value);
 
-#pragma warning disable CA2225
+    public static Result<TValue> FromErrorDetails(ErrorDetails errorDetails) 
+        => Failure(errorDetails);
+
+    public Result ToResult() 
+        => IsSuccess ? Result.Success() : Result.Failure(this);
+    
+    public static implicit operator Result<TValue>(TValue value)
+        => Success(value);
+
     public static implicit operator Result<TValue>(ErrorDetails errorDetails)
-#pragma warning restore CA2225
         => Failure(errorDetails);
     
-#pragma warning disable CA2225
     public static implicit operator Result(Result<TValue> result)
-#pragma warning restore CA2225
         => result.IsSuccess
             ? Result.Success()
             : Result.Failure(result);
