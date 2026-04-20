@@ -3,6 +3,7 @@ using LudaFit.Core.Mapping;
 using LudaFit.Domain.Entities;
 using LudaFit.Infrastructure.SQLite;
 using LudaFit.Infrastructure.Telegram;
+using LudaFit.Infrastructure.Telegram.Exceptions;
 using LudaFit.Infrastructure.Telegram.Options;
 using LudaFit.SharedKernel.Models;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +18,10 @@ internal sealed partial class SendTelegramBackgroundService(
     [LoggerMessage(1, LogLevel.Error, "Error while deleting expired discounts. DateTime: {DateTime}")]
     private partial void LogDbError(DbException ex, DateTime dateTime);
     
-    [LoggerMessage(2, LogLevel.Information, "Operation cancelled. DateTime: {DateTime}")]
+    [LoggerMessage(2, LogLevel.Error, "Error while sending telegram message.")]
+    private partial void LogTelegramError(SendTelegramMessageException ex);
+    
+    [LoggerMessage(3, LogLevel.Information, "Operation cancelled. DateTime: {DateTime}")]
     private partial void LogCancelledOperation(DateTime dateTime);
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -74,6 +78,11 @@ internal sealed partial class SendTelegramBackgroundService(
             {
                 // ignored
                 LogDbError(ex, currentDateTime);
+            }
+            catch (SendTelegramMessageException ex)
+            {
+                // ignored
+                LogTelegramError(ex);
             }
             finally
             {

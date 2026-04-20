@@ -1,11 +1,13 @@
 using System.Globalization;
 using System.Net;
 using System.Text;
+using LudaFit.Infrastructure.Telegram.Exceptions;
 using LudaFit.Infrastructure.Telegram.Options;
 using LudaFit.Infrastructure.Telegram.Settings;
 using LudaFit.SharedKernel.Interfaces;
 using LudaFit.SharedKernel.Models;
 using LudaFit.SharedKernel.Options;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -14,11 +16,15 @@ using Telegram.Bot.Types.Enums;
 namespace LudaFit.Infrastructure.Telegram;
 
 //todo: написать заметку об этом в обсидиан
-public sealed class TelegramSender(
+public sealed partial class TelegramSender(
     IOptions<TelegramSettings> options,
-    ITelegramBotClient telegramBotClient) : IScopedType
+    ITelegramBotClient telegramBotClient,
+    ILogger<TelegramSender> logger) : IScopedType
 {
     private readonly TelegramSettings _settings = options.Value;
+    
+    [LoggerMessage(1, LogLevel.Error, "Error while sending telegram message")]
+    private partial void LogTelegramError(Exception ex);
 
     public async Task<Result> SendAsync(SendTelegramOptions options, CancellationToken cancellationToken)
     {
@@ -58,14 +64,10 @@ public sealed class TelegramSender(
                 cancellationToken: cancellationToken
             );
         }
-#pragma warning disable CA1031
-        catch
-#pragma warning restore CA1031
+        catch (Exception ex)
         {
-            return Result.Failure(
-                "Не вдалося відправити повідомлення в телеграм",
-                HttpStatusCode.InternalServerError
-            );
+            LogTelegramError(ex);
+            throw new SendTelegramMessageException(ex);
         }
         
         return Result.Success();

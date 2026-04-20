@@ -2,6 +2,7 @@ using System.Data.Common;
 using LudaFit.Core.Mapping;
 using LudaFit.Domain.Entities;
 using LudaFit.Infrastructure.Gmail;
+using LudaFit.Infrastructure.Gmail.Exceptions;
 using LudaFit.Infrastructure.Gmail.Options;
 using LudaFit.Infrastructure.SQLite;
 using LudaFit.SharedKernel.Models;
@@ -14,10 +15,13 @@ internal sealed partial class SendEmailsBackgroundService(
     TimeProvider timeProvider,
     ILogger<SendEmailsBackgroundService> logger) : BackgroundService
 {
-    [LoggerMessage(1, LogLevel.Error, "Error while deleting expired discounts. DateTime: {DateTime}")]
+    [LoggerMessage(1, LogLevel.Error, "Error while sending email")]
+    private partial void LogEmailError(Exception ex);
+    
+    [LoggerMessage(2, LogLevel.Error, "Error while deleting expired discounts. DateTime: {DateTime}")]
     private partial void LogDbError(DbException ex, DateTime dateTime);
 
-    [LoggerMessage(2, LogLevel.Information, "Operation cancelled. DateTime: {DateTime}")]
+    [LoggerMessage(3, LogLevel.Information, "Operation cancelled. DateTime: {DateTime}")]
     private partial void LogCancelledOperation(DateTime dateTime);
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -74,6 +78,11 @@ internal sealed partial class SendEmailsBackgroundService(
             {
                 // ignored
                 LogDbError(ex, currentDateTime);
+            }
+            catch (SendEmailException ex)
+            {
+                // ignored
+                LogEmailError(ex);
             }
             finally
             {

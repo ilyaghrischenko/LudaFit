@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Net;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
+using LudaFit.Infrastructure.Gmail.Exceptions;
 using LudaFit.Infrastructure.Gmail.Options;
 using LudaFit.Infrastructure.Gmail.Settings;
 using LudaFit.SharedKernel.Interfaces;
@@ -10,14 +11,20 @@ using LudaFit.SharedKernel.Options;
 using MailKit;
 using MailKit.Net.Smtp;
 using MailKit.Security;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
 
 namespace LudaFit.Infrastructure.Gmail;
 
-public sealed class EmailSender(IOptions<EmailSettings> options) : IScopedType
+public sealed partial class EmailSender(
+    IOptions<EmailSettings> options,
+    ILogger<EmailSender> logger) : IScopedType
 {
     private readonly EmailSettings _settings = options.Value;
+    
+    [LoggerMessage(1, LogLevel.Error, "Error while sending email")]
+    private partial void LogEmailError(Exception ex);
     
     //todo: повесить рейт лимитер на ендпоинт который это использует + каптчу на фронте + написать заметку об этом в обсидиан
     public async Task<Result> SendAsync(SendEmailOptions options, CancellationToken cancellationToken)
@@ -70,14 +77,10 @@ public sealed class EmailSender(IOptions<EmailSettings> options) : IScopedType
             await client.AuthenticateAsync(_settings.OrganisationEmail, _settings.Password, cancellationToken);
             await client.SendAsync(mimeMessage, cancellationToken);
         }
-#pragma warning disable CA1031
-        catch
-#pragma warning restore CA1031
+        catch (Exception ex)
         {
-            return Result.Failure(
-                "Не вдалося відправити листа на пошту",
-                HttpStatusCode.InternalServerError
-            );
+            LogEmailError(ex);
+            throw new SendEmailException(ex);
         }
         finally
         {
